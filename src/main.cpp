@@ -79,11 +79,11 @@ void writeIMUMeas(const vector<IMUData>& imumeas, const char* filePath){
 }
 
 #define CLIP3(_n1, _n,  _n2) {if (_n<_n1) _n=_n1;  if (_n>_n2) _n=_n2;}
-ofstream fout("/home/mrh/Record/test.txt",ios::app);
+ofstream fout("/home/mozhi/Record/test.txt",ios::app);
 #include "ARDrone.h"
 void* Control_loop(void* param) {
-    IMURecorder imureader("/home/mrh/Record/imu.txt");
-	VideoRecorder videoreader("/home/mrh/Record/video_ts.txt", "/home/mrh/Record/video.avi");
+    IMURecorder imureader("/home/mozhi/Record/imu.txt");
+	VideoRecorder videoreader("/home/mozhi/Record/video_ts.txt", "/home/mozhi/Record/video.avi");
     ROSThread thread(imureader, videoreader);
     thread.showVideo = true;
     ImgRGB img(640, 360);
@@ -95,8 +95,8 @@ void* Control_loop(void* param) {
     imgnumberwarp=cvCreateImage(imgnumbersize, IPL_DEPTH_8U, 3);
     imgg= cvCreateImage(imgSize, IPL_DEPTH_8U, 1 );
     imgb= cvCreateImage(imgSize, IPL_DEPTH_8U, 1 );
-    squaretmp=cvLoadImage("/home/mrh/catkin_ws/src/MRHDroneContest/src/NumberTrain/bz1.jpg",CV_LOAD_IMAGE_GRAYSCALE);
-     squaretmp1=cvLoadImage("/home/mrh/catkin_ws/src/MRHDroneContest/src/NumberTrain/7.jpg",1);
+    squaretmp=cvLoadImage("/home/mozhi/catkin_ws/src/Ardrone_L-H/src/NumberTrain/bz1.jpg",CV_LOAD_IMAGE_GRAYSCALE);
+     squaretmp1=cvLoadImage("/home/mozhi/catkin_ws/src/Ardrone_L-H/src/NumberTrain/7.jpg",1);
 
     system("rosservice call /ardrone/setcamchannel 1");
 ////////////////////////////////
@@ -905,12 +905,12 @@ void ROSControl_main(int argc, char** argv) {
 int main(int argc, char** argv)
 {
 #if premode==1
-    bp.load("/home/mrh/catkin_ws/src/MRHDroneContest/src/NumberTrain/bpModel1.xml");
+    bp.load("/home/mozhi/catkin_ws/src/Ardrone_L-H/src/NumberTrain/bpModel1.xml");
 #else
     #if premode==2
-        bp.load("/home/mrh/catkin_ws/src/MRHDroneContest/src/NumberTrain/bpModel2.xml");
+        bp.load("/home/mozhi/catkin_ws/src/Ardrone_L-H/src/NumberTrain/bpModel2.xml");
     #else
-         bp.load("/home/mrh/catkin_ws/src/MRHDroneContest/src/NumberTrain/bpModel_op.xml");
+         bp.load("/home/mozhi/catkin_ws/src/Ardrone_L-H/src/NumberTrain/bpModel_op.xml");
     #endif
 #endif
     ros::init(argc, argv,"ARDrone_test");
