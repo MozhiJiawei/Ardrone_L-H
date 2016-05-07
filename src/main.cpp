@@ -83,11 +83,11 @@ ofstream fout("/home/mozhi/Record/test.txt",ios::app);
 #include "ARDrone.h"
 void* Control_loop(void* param) {
     IMURecorder imureader("/home/mozhi/Record/imu.txt");
-   VideoRecorder videoreader("/home/mozhi/Record/video_ts.txt", "/home/mozhi/Record/video.avi");
+	VideoRecorder videoreader("/home/mozhi/Record/video_ts.txt", "/home/mozhi/Record/video.avi");
     ROSThread thread(imureader, videoreader);
     thread.showVideo = true;
     ImgRGB img(640, 360);
-    IplImage *imgsrc,*imgr,* imgg, *imgb,*squaretmp,*squaretmp1,*imgyellow,*imgnumber,*imgnumberwarp;
+	IplImage *imgsrc,*imgr,* imgg, *imgb,*squaretmp,*squaretmp1,*imgyellow,*imgnumber,*imgnumberwarp;
     CvSize imgSize={640,360},imgnumbersize={128,128};
     imgr= cvCreateImage(imgSize, IPL_DEPTH_8U, 1 );
     imgyellow=cvCreateImage(imgSize, IPL_DEPTH_8U, 3);
@@ -95,8 +95,8 @@ void* Control_loop(void* param) {
     imgnumberwarp=cvCreateImage(imgnumbersize, IPL_DEPTH_8U, 3);
     imgg= cvCreateImage(imgSize, IPL_DEPTH_8U, 1 );
     imgb= cvCreateImage(imgSize, IPL_DEPTH_8U, 1 );
-    squaretmp=cvLoadImage("/home/mozhi/catkin_ws/src/MRHDroneContest/src/NumberTrain/bz1.jpg",CV_LOAD_IMAGE_GRAYSCALE);
-     squaretmp1=cvLoadImage("/home/mozhi/catkin_ws/src/MRHDroneContest/src/NumberTrain/7.jpg",1);
+    squaretmp=cvLoadImage("/home/mozhi/catkin_ws/src/Ardrone_L-H/src/NumberTrain/bz1.jpg",CV_LOAD_IMAGE_GRAYSCALE);
+     squaretmp1=cvLoadImage("/home/mozhi/catkin_ws/src/Ardrone_L-H/src/NumberTrain/7.jpg",1);
 
     system("rosservice call /ardrone/setcamchannel 1");
 ////////////////////////////////
@@ -108,7 +108,7 @@ void* Control_loop(void* param) {
     int pathJustLost=0, pathLostCount=0;
     double lasttargetx=300, lasttargety=180;
     int blobSize=0, targetBlobSize=2000;
-    int controlMode=0,controlflag=0; //0: Manual; 1: Auto
+    int controlMode=0,controlflag=0; //0: Manual; 1: Auto // controlMode作为对不同飞行状态的选择
     PIDController pidX, pidY, pidZ;
     PIDController pidVX, pidVY, pidVZ,PidW;
     int frame_count=0, lostframe=0;
@@ -117,7 +117,7 @@ void* Control_loop(void* param) {
     double redAveY=0;
     //CvBlobSeq* pOldBlobList=NULL;
     char c;
-    /////////////////////////
+    ///////////////////////// PID control parameters
     double targetx, targety;
     double centerx, centery,centerxavr,centeryavr,centerxblue,centeryblue;
     double errorx, errory,errorturn;
@@ -131,7 +131,7 @@ void* Control_loop(void* param) {
     static double ki=0.0;
     double scale=3;
     static double vkp=5, vkd=20, vki=0;
-///////////////////////////find number/////////////////////////
+///////////////////////////find number//////////////project 2///////////
     float yellowpercent;
     int pre,ready=0;
     CvRect omegasquare;
@@ -147,7 +147,7 @@ void* Control_loop(void* param) {
     clock_t up_time=clock();
     clock_t find_time=clock();
     clock_t test_time=clock();
-    double velNum[10][2]={0};//v[0]->水平,v[1]->垂直
+    double velNum[10][2]={0};//v[0]->水平,v[1]->垂直 分别代表像9个停机坪飞行的X，Y方向上速度，默认值
      velNum[0][0]=0,velNum[0][1]=0;    //0
      velNum[1][0]=-0.1,velNum[1][1]=0.05;   //1
      velNum[2][0]=-0.12,velNum[2][1]=0.02;     //2
@@ -161,10 +161,10 @@ void* Control_loop(void* param) {
       int testnumbernow=1;
       int mode5start=0;
       int mode5clock=0;
-   double time_fly[10]={0,6000.91,6000.59, 3500.75, 5500.7,9000.87,10500.9,9372.34, 4955.11,7466.54};
+   double time_fly[10]={0,6000.91,6000.59, 3500.75, 5500.7,9000.87,10500.9,9372.34, 4955.11,7466.54}; //有一个停机坪到下一个停机坪的飞行时间，默认值
     int mode3findflag=1;
     int pre_count=0;
-//////////////////////////////////////////////////////////////////
+///////////////////////////////////PID调节的初始量///////////////////////////////
     pidX.setParam(kp, ki, kd, 2);
     pidY.setParam(kp, ki, kd, 2);
     pidZ.setParam(kp, ki, kd, 3);
@@ -210,7 +210,7 @@ cout << "Start!" << endl;
             cvShowImage("imgyellow",imgyellow);
 
 
-   //////////////////////////test/////////////////////////////////////////////////
+   //////////////////////////test///////////对一帧图片的处理//////////////////////////////////////
 #else
         if (videoreader.newframe){// new frame?
         frame_count++;
@@ -222,14 +222,14 @@ cout << "Start!" << endl;
         cout << " Height:"<<setw(8)<< thread.navdata.altd << "  v: "<<setw(8) <<  thread.navdata.vx << " "<<setw(8)<< thread.navdata.vy<<endl ;//<<" "<< thread.navdata.vz;
 
         if (!videoreader.curImg.empty()) {
-            cloneImg(videoreader.curImg, img);
-            bgr2rgb(img);
+            cloneImg(videoreader.curImg, img); //克隆当前相机照片到处理照片
+            bgr2rgb(img); //图片二值化？
             if (videoreader._recording) {
-                drawPoint(img, 15, 15, 6, 255, 0, 0, 2);
+                drawPoint(img, 15, 15, 6, 255, 0, 0, 2); //统计照片像素点
             }
         }
             videoreader.getImage(imgmat);
-            videoreader.getImage(imgmatyellow);
+            videoreader.getImage(imgmatyellow); //检测黄色矩形
             *imgsrc=imgmat;
             *imgyellow=imgmatyellow;
             if(controlMode!=3)EqualizeHistColorImage(imgyellow);
@@ -238,7 +238,7 @@ cout << "Start!" << endl;
             drawSquares( imgmat, squares );
             cvShowImage("imgyellow",imgyellow);
             cout<<"test_targethffffffffffff"<<thread.navdata.altd<<endl;
-       if(controlMode==4)
+       if(controlMode==4) //对不同停机坪数字的处理，水平飞行处理
        {
             //if(mynumner.isNumFind(currentnumber))controlMode=403;
            if(setcamera==1){
@@ -278,7 +278,7 @@ cout << "Start!" << endl;
            upd=0;
 
        }
-       else if(controlMode==400)
+       else if(controlMode==400) //对准目标停机坪中心，利用PID调节
        {
             //cvErode(imgyellow,imgyellow,0,1);//腐蚀
             //cvDilate(imgyellow,imgyellow,0,1);//膨胀
@@ -541,7 +541,7 @@ cout << "Start!" << endl;
            //到已知数字的位置
            controlMode=400;
        }
-       else if(controlMode==404)//未知场地使用
+       else if(controlMode==404)//未知场地使用，走偏处理
        {
            //前进一格,飞行0.5秒
             forwardb=forwardbmode4;
@@ -905,12 +905,12 @@ void ROSControl_main(int argc, char** argv) {
 int main(int argc, char** argv)
 {
 #if premode==1
-    bp.load("/home/mozhi/catkin_ws/src/MRHDroneContest/src/NumberTrain/bpModel1.xml");
+    bp.load("/home/mozhi/catkin_ws/src/Ardrone_L-H/src/NumberTrain/bpModel1.xml");
 #else
     #if premode==2
-        bp.load("/home/mozhi/catkin_ws/src/MRHDroneContest/src/NumberTrain/bpModel2.xml");
+        bp.load("/home/mozhi/catkin_ws/src/Ardrone_L-H/src/NumberTrain/bpModel2.xml");
     #else
-         bp.load("/home/mozhi/catkin_ws/src/MRHDroneContest/src/NumberTrain/bpModel_op.xml");
+         bp.load("/home/mozhi/catkin_ws/src/Ardrone_L-H/src/NumberTrain/bpModel_op.xml");
     #endif
 #endif
     ros::init(argc, argv,"ARDrone_test");
