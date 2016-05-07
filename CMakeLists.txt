@@ -1,12 +1,12 @@
 cmake_minimum_required(VERSION 2.8.3)
 include($ENV{ROS_ROOT}/core/rosbuild/rosbuild.cmake)
-project(MRHDroneContest)
+project(ARDRONE_L-H)
 
 ## Find catkin macros and libraries
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
 ## is used, also find other catkin packages
 find_package(catkin REQUIRED COMPONENTS
-  cv_bridge
+	cv_bridge
   roscpp
   rospy
 )
@@ -49,10 +49,10 @@ set(MoSLAM_LIB
 )
 
 ## Declare a cpp executable
-add_executable(MRHDroneContest ${SOURCE_FILES})
+add_executable(ARDRONE_L-H ${SOURCE_FILES})
 
 ## Specify libraries to link a library or executable target against
-target_link_libraries(MRHDroneContest
+target_link_libraries(ARDRONE_L-H
   ${catkin_LIBRARIES}
   ${MoSLAM_LIB}
   ${OpenCV_LIBS}
