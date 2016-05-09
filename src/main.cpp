@@ -90,7 +90,7 @@ void* Control_loop(void* param) {
 	IMURecorder imureader("/home/mozhi/Record/imu.txt");
 	VideoRecorder videoreader("/home/mozhi/Record/video_ts.txt", "/home/mozhi/Record/video.avi");
 	CMDReciever cmdreader("/home/mozhi/Record/cmd.txt");
-	ROSThread thread(imureader, videoreader);
+	ROSThread thread(imureader, videoreader, cmdreader);
 	thread.showVideo = true;
 	ImgRGB img(640, 360);
 	IplImage *imgsrc,*imgr,* imgg, *imgb,*squaretmp,*squaretmp1,*imgyellow,*imgnumber,*imgnumberwarp;
@@ -198,7 +198,6 @@ void* Control_loop(void* param) {
 	cout << filename << endl;
 #endif
 	while (ros::ok()) {
-		cout << "enter main loop" << endl;
 		usleep(1000);
 		lostframe ++;
 		if (c=='x')  drone->land();

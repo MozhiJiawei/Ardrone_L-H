@@ -34,16 +34,17 @@ static double getVideoTimeByIMUTime(uint32_t sec, uint32_t usec, double imutime)
 	return imutime;
 }
 
-ROSThread::ROSThread(IMURecorder& imu, VideoRecorder& vid) :
-	imuRec(imu), vidRec(vid) {
-		running = false;
-		toQuit = false;
-		recording = false;
-		showVideo = true;
-		threadId = 0;
-		cbROSThread = 0;
-		start();
-	}
+ROSThread::ROSThread(IMURecorder& imu, VideoRecorder& vid,
+		CMDReciever& cmd) :	imuRec(imu), vidRec(vid), cmdRec(cmd){
+	
+	running = false;
+	toQuit = false;
+	recording = false;
+	showVideo = true;
+	threadId = 0;
+	cbROSThread = 0;
+	start();
+}
 
 ROSThread::~ROSThread() {
 	end();
@@ -78,9 +79,13 @@ void ROSThread::cmdCb(const keyboard::Key::ConstPtr msg) {
 	cv::Mat curImg;
 	vidRec.getImage(curImg);
 	if (!curImg.empty()) {
+		cout << "save!" << endl;
 		cmdRec.SaveImage(curImg);
 	}
-	cout << "recieving keyboard message successfully" << endl;
+	else {
+		cout << "no image!" << endl;
+	} 
+	cout << msg->code << endl;
 }
 
 void ROSThread::navdataCb(const ardrone_autonomy::Navdata::ConstPtr navPtr) {

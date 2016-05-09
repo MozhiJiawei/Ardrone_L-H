@@ -67,7 +67,7 @@ public:
 
 	void(*cbROSThread)(void);
 public:
-	ROSThread(IMURecorder& imu, VideoRecorder& vidRec);
+	ROSThread(IMURecorder& imu, VideoRecorder& vidRec, CMDReciever& cmd);
 	virtual ~ROSThread();
 	static void * threadProc(void*);
 
