@@ -86,10 +86,6 @@ void writeIMUMeas(const vector<IMUData>& imumeas, const char* filePath){
 ofstream fout("/home/mozhi/Record/test.txt",ios::app);
 #include "ARDrone.h"
 
-void KeyCallback(const keyboard::Key::ConstPtr& msg) {
-	cout << "recieving keyboard message successfully"  << endl;
-}
-
 void* Control_loop(void* param) {
 	IMURecorder imureader("/home/mozhi/Record/imu.txt");
 	VideoRecorder videoreader("/home/mozhi/Record/video_ts.txt", "/home/mozhi/Record/video.avi");
@@ -200,12 +196,6 @@ void* Control_loop(void* param) {
 			a->tm_mday, a->tm_hour, a->tm_min, a->tm_sec);
 
 	cout << filename << endl;
-
-	//ros::Subscriber test
-	ros::NodeHandle node;
-	ros::Subscriber sub = node.subscribe(node.resolveName("keyboard/keydown"), 1,
-			KeyCallback);
-	ros::spin();
 #endif
 	while (ros::ok()) {
 		cout << "enter main loop" << endl;

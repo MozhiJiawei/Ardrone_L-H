@@ -35,15 +35,15 @@ static double getVideoTimeByIMUTime(uint32_t sec, uint32_t usec, double imutime)
 }
 
 ROSThread::ROSThread(IMURecorder& imu, VideoRecorder& vid) :
-		imuRec(imu), vidRec(vid) {
-	running = false;
-	toQuit = false;
-	recording = false;
-	showVideo = true;
-	threadId = 0;
-	cbROSThread = 0;
-	start();
-}
+	imuRec(imu), vidRec(vid) {
+		running = false;
+		toQuit = false;
+		recording = false;
+		showVideo = true;
+		threadId = 0;
+		cbROSThread = 0;
+		start();
+	}
 
 ROSThread::~ROSThread() {
 	end();
@@ -57,8 +57,8 @@ void* ROSThread::threadProc(void* data) {
 
 void ROSThread::imuCb(const sensor_msgs::Imu::ConstPtr imuPtr) {
 	IMUData imu;
-    //imu.tm = tmIMU;
-    imu.tm = imuPtr->header.stamp.toSec();
+	//imu.tm = tmIMU;
+	imu.tm = imuPtr->header.stamp.toSec();
 	imu.a[0] = imuPtr->linear_acceleration.x;
 	imu.a[1] = imuPtr->linear_acceleration.y;
 	imu.a[2] = imuPtr->linear_acceleration.z;
@@ -68,29 +68,38 @@ void ROSThread::imuCb(const sensor_msgs::Imu::ConstPtr imuPtr) {
 	imu.g[2] = imuPtr->angular_velocity.z;
 
 	imuRec.addBack(imu);
-	
+
 	if( cbROSThread){
 		(*cbROSThread)();
 	}
 }
 
+void ROSThread::cmdCb(const keyboard::Key::ConstPtr msg) {
+	cv::Mat curImg;
+	vidRec.getImage(curImg);
+	if (!curImg.empty()) {
+		cmdRec.SaveImage(curImg);
+	}
+	cout << "recieving keyboard message successfully" << endl;
+}
+
 void ROSThread::navdataCb(const ardrone_autonomy::Navdata::ConstPtr navPtr) {
 	tmIMU = navPtr->tm / 1000000.0;
-    navdata = *navPtr;
+	navdata = *navPtr;
 }
 
 void ROSThread::vidCb(const sensor_msgs::ImageConstPtr img) {
 	// convert to CVImage
-    cv_bridge::CvImagePtr cv_ptr = cv_bridge::toCvCopy(img,
-            sensor_msgs::image_encodings::BGR8);
+	cv_bridge::CvImagePtr cv_ptr = cv_bridge::toCvCopy(img,
+			sensor_msgs::image_encodings::BGR8);
 
-//	double tmVid = getVideoTimeByIMUTime(img->header.stamp.sec, img->header.stamp.nsec,
-//			tmIMU);
-    
-    double tmVid = img->header.stamp.sec + img->header.stamp.nsec*1e-9;
+	//	double tmVid = getVideoTimeByIMUTime(img->header.stamp.sec, img->header.stamp.nsec,
+	//			tmIMU);
+
+	double tmVid = img->header.stamp.sec + img->header.stamp.nsec*1e-9;
 
 	vidRec.addBack(tmVid, cv_ptr->image);
-   // vidRec.newframe=true;
+	// vidRec.newframe=true;
 }
 void ROSThread::start() {
 	pthread_attr_t attr;
@@ -117,6 +126,9 @@ void ROSThread::loop() {
 
 	imusub = node.subscribe(node.resolveName("ardrone/imu"), 1,
 			&ROSThread::imuCb, this);
+
+	cmdsub = node.subscribe(node.resolveName("keyboard/keydown"), 1,
+			&ROSThread::cmdCb, this);
 
 	if (showVideo) {
 		vidsub = node.subscribe(node.resolveName("ardrone/image_raw"), 1,
