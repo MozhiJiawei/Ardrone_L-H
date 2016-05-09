@@ -44,6 +44,8 @@
 #include <keyboard/Key.h>
 using namespace std;
 
+#define Test 1
+
 static int mGrids = 5;
 static int nGrids = 6;
 static int setcamera=0;
@@ -181,13 +183,25 @@ void* Control_loop(void* param) {
 	targetx=320,targety=185;
 	//////////////////////////////////////////////////////////
 	cout << "Start!" << endl;
+#if Test
+	//Get local time test
+	char filename[50];
+	time_t timep;
+	struct tm *a;
+	time(&timep);
+	a = localtime(&timep);
+	sprintf(filename,"/home/mozhi/Logs/%02d_%02d_%02d_%02d.bmp",
+			a->tm_mday, a->tm_hour, a->tm_min, a->tm_sec);
+
+	cout << filename << endl;
+
 	//ros::Subscriber test
 	ros::NodeHandle node;
 	ros::Subscriber sub = node.subscribe(node.resolveName("keyboard/keydown"), 1,
 			KeyCallback);
 	ros::spin();
-
-	while (1) {
+#endif
+	while (ros::ok()) {
 		cout << "enter main loop" << endl;
 		usleep(1000);
 		lostframe ++;
@@ -195,7 +209,7 @@ void* Control_loop(void* param) {
 		if (lostframe>100) drone->hover(); // if the video is not fluent
 		if (lostframe>3000) drone->land(); // if the video is not fluent
 		//////////////////////////test/////////////////////////////////////////////////
-#if 1
+#if Test
 		//////////////////////////test///////////对一帧图片的处理//////////////////////////////////////
 #else
 		if (videoreader.newframe){// new frame?
