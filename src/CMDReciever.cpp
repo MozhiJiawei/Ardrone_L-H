@@ -19,7 +19,7 @@ CMDReciever::~CMDReciever() {
 	pthread_mutex_lock(&_mode_mutex);
 }
 
-CMDReciever::SaveImage(const cv::Mat src) {
+void CMDReciever::SaveImage(const cv::Mat& src) {
 	char filename[50];
 	time_t timep;
 	struct tm *a;
@@ -40,7 +40,7 @@ ModeType CMDReciever::GetMode() {
 	return cur_mode;
 }
 
-void SetMode(ModeType mode) {
+void CMDReciever::SetMode(ModeType mode) {
 	pthread_mutex_lock(&_mode_mutex);
 	ModeType _mode = mode;
 	pthread_mutex_unlock(&_mode_mutex);

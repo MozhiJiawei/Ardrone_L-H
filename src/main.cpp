@@ -27,6 +27,7 @@
 #include "AffineTransform.h"
 #include "PredictNumber.h"
 #include "SearchNumber.h"
+#include "CMDReciever.h"
 #include "time.h"
 
 #include <opencv2/opencv.hpp>
@@ -92,6 +93,7 @@ void KeyCallback(const keyboard::Key::ConstPtr& msg) {
 void* Control_loop(void* param) {
 	IMURecorder imureader("/home/mozhi/Record/imu.txt");
 	VideoRecorder videoreader("/home/mozhi/Record/video_ts.txt", "/home/mozhi/Record/video.avi");
+	CMDReciever cmdreader("/home/mozhi/Record/cmd.txt");
 	ROSThread thread(imureader, videoreader);
 	thread.showVideo = true;
 	ImgRGB img(640, 360);
@@ -184,6 +186,10 @@ void* Control_loop(void* param) {
 	//////////////////////////////////////////////////////////
 	cout << "Start!" << endl;
 #if Test
+	//CMDReciever test
+	ModeType cur_mode;
+	cur_mode = cmdreader.GetMode();
+
 	//Get local time test
 	char filename[50];
 	time_t timep;

@@ -15,9 +15,16 @@
 
 using namespace std;
 
-enum ModeType {TAKEOFF, LAND, STOP, FLYING}
+enum ModeType {TAKEOFF, LAND, STOP, FLYING};
 
 class CMDReciever {
+public:
+	CMDReciever(const char* fileName);
+	virtual ~CMDReciever();
+
+	void SaveImage(const cv::Mat& src);
+	ModeType GetMode();
+	void SetMode(ModeType mode);
 private:
 	ModeType _mode;
 
@@ -25,14 +32,6 @@ private:
 
 	const char* _filePath;
 	ofstream log;
-
-public:
-	CMDReciever(const char* fileName);
-	virtual ~CMDReciever();
-
-	void SaveImage(const cv::Mat &src);
-	ModeType GetMode();
-	void SetMode(ModeType mode);
 };
 
 #endif /* CMDReciever_H_ */
