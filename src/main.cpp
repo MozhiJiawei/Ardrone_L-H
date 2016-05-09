@@ -40,7 +40,8 @@
 #include "math.h"
 #define PI 3.14159265
 
-
+#include <ros/ros.h>
+#include <keyboard/Key.h>
 using namespace std;
 
 static int mGrids = 5;
@@ -81,6 +82,11 @@ void writeIMUMeas(const vector<IMUData>& imumeas, const char* filePath){
 #define CLIP3(_n1, _n,  _n2) {if (_n<_n1) _n=_n1;  if (_n>_n2) _n=_n2;}
 ofstream fout("/home/mozhi/Record/test.txt",ios::app);
 #include "ARDrone.h"
+
+void KeyCallback(const keyboard::Key::ConstPtr& msg) {
+	cout << "recieving keyboard message successfully"  << endl;
+}
+
 void* Control_loop(void* param) {
 	IMURecorder imureader("/home/mozhi/Record/imu.txt");
 	VideoRecorder videoreader("/home/mozhi/Record/video_ts.txt", "/home/mozhi/Record/video.avi");
@@ -175,14 +181,21 @@ void* Control_loop(void* param) {
 	targetx=320,targety=185;
 	//////////////////////////////////////////////////////////
 	cout << "Start!" << endl;
+	//ros::Subscriber test
+	ros::NodeHandle node;
+	ros::Subscriber sub = node.subscribe(node.resolveName("keyboard/keydown"), 1,
+			KeyCallback);
+	ros::spin();
+
 	while (1) {
+		cout << "enter main loop" << endl;
 		usleep(1000);
 		lostframe ++;
 		if (c=='x')  drone->land();
 		if (lostframe>100) drone->hover(); // if the video is not fluent
 		if (lostframe>3000) drone->land(); // if the video is not fluent
 		//////////////////////////test/////////////////////////////////////////////////
-#if 0
+#if 1
 		//////////////////////////test///////////对一帧图片的处理//////////////////////////////////////
 #else
 		if (videoreader.newframe){// new frame?

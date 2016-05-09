@@ -6,6 +6,7 @@ cmake_install.cmake
 install_manifest.txt
 
 *.*~
+*.swp
 
 /catkin/
 CTestTestfile.cmake
