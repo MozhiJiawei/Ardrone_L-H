@@ -29,7 +29,8 @@ private:
 	bool ConExist;//轮廓是否存在
 	int ConArea;//轮廓面积
 	CvPoint Center;//轮廓中心点
-	string SamLoca;//样本位置
+	string SamLoca[10];//样本位置
+	int NumDetec(const IplImage* dst);//数字判断函数
 	//IplImage 
 	//	*src,//灰度图，二值化，腐蚀
 	//	*dst,//复制src后找轮廓

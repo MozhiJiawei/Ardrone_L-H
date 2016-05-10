@@ -2,6 +2,7 @@
 //
 //////////////////////////////////////////////////////////////////////
 
+#include "stdafx.h"
 #include "ImgRecon.h"
 #include <iostream>
 using namespace std;
@@ -12,7 +13,12 @@ using namespace std;
 
 ImgRecon::ImgRecon(const IplImage *img)
 {
-	
+	SamLoca[0]="F:\\photo\\numbers\\Logs\\sample0.bmp";SamLoca[5]="F:\\photo\\numbers\\Logs\\sample5.bmp";//样本存放地址
+	SamLoca[1]="F:\\photo\\numbers\\Logs\\sample1.bmp";SamLoca[6]="F:\\photo\\numbers\\Logs\\sample6.bmp";
+	SamLoca[2]="F:\\photo\\numbers\\Logs\\sample2.bmp";SamLoca[7]="F:\\photo\\numbers\\Logs\\sample7.bmp";
+	SamLoca[3]="F:\\photo\\numbers\\Logs\\sample3.bmp";SamLoca[8]="F:\\photo\\numbers\\Logs\\sample8.bmp";
+	SamLoca[4]="F:\\photo\\numbers\\Logs\\sample4.bmp";SamLoca[9]="F:\\photo\\numbers\\Logs\\sample9.bmp";
+
 	ReInit(img);
 }
 
@@ -28,7 +34,7 @@ void ImgRecon::ReInit(const IplImage *img)
 	Center = cvPoint(0,0);
 	ConArea = 0;
 	ConExist = 0;
-	SamLoca = "F:\\photo\\numbers\\c1.jpg";//样本存放地址
+	
 	
 	IplImage 
 		*src,//灰度图，二值化，腐蚀
@@ -39,8 +45,8 @@ void ImgRecon::ReInit(const IplImage *img)
 	dst1 = cvCreateImage( cvGetSize(img), IPL_DEPTH_8U, 1);
 
 	cvCvtColor( img, src, CV_BGR2GRAY );//转灰img->src
-	cvThreshold( src, src, 148, 255, CV_THRESH_BINARY);//二值化src
-	cvErode( src, src, NULL, 2);//腐蚀src
+	cvThreshold( src, src, 130, 255, CV_THRESH_BINARY);//二值化src
+	cvErode( src, src, NULL, 1);//腐蚀src
 	cvCopy( src, dst);//备份src->dst
 
 	//找轮廓dst
@@ -71,7 +77,7 @@ void ImgRecon::ReInit(const IplImage *img)
 		IplImage *eig_image = cvCreateImage(cvGetSize(img), IPL_DEPTH_32F, 1), *temp_image = cvCreateImage(cvGetSize(img), IPL_DEPTH_32F, 1); ;
 		int maxcorners=4;
 		CvPoint2D32f corners1[4];//
-		cvGoodFeaturesToTrack(dst1, eig_image, temp_image, corners1, &maxcorners, 0.01, 300);//最后一个参数为两个点距离最小值	
+		cvGoodFeaturesToTrack(dst1, eig_image, temp_image, corners1, &maxcorners, 0.01, 150);//最后一个参数为两个点距离最小值	
 	
 		//角点顺时针排序，对于c1图片倾斜太多没办法dst1
 		CvPoint2D32f cornertemp;
@@ -111,7 +117,7 @@ void ImgRecon::ReInit(const IplImage *img)
 			corners1[0]=corners1[co0];
 			corners1[co0]=cornertemp;
 		}
-		if((corners1[1].x-corners1[0].x)<250){
+		if((corners1[1].x-corners1[0].x)<100){
 			cornertemp=corners1[3];
 			corners1[3]=corners1[1];
 			corners1[1]=cornertemp;
@@ -122,14 +128,17 @@ void ImgRecon::ReInit(const IplImage *img)
 		CvPoint2D32f dstTri[4];
 		dstTri[0].x = 0;  
 	    dstTri[0].y = 0;  
-		dstTri[1].x = 500;  
+		dstTri[1].x = 200;  
 	    dstTri[1].y = 0;  
-		dstTri[2].x = 500;  
-	    dstTri[2].y = 500;  
+		dstTri[2].x = 200;  
+	    dstTri[2].y = 200;  
 		dstTri[3].x = 0;  
-		dstTri[3].y = 500;
+		dstTri[3].y = 200;
 		cvGetPerspectiveTransform(corners1, dstTri, warp_mat);	
 		cvWarpPerspective(src, dst, warp_mat);
+
+		//判断数字
+		NumResult = NumDetec(dst);
 
 		//释放不需要的内存
 		cvReleaseImage(&eig_image);
@@ -142,6 +151,114 @@ void ImgRecon::ReInit(const IplImage *img)
 	cvReleaseImage(&src);
 	cvReleaseMemStorage (&storage);
 	cvReleaseMemStorage (&storage1);
+}
+
+//数字判断函数
+int ImgRecon::NumDetec(const IplImage* dst)
+{
+	int xsmin[10]={68,80,70,71,67,71,68,72,73,70},//样本图片数字的位置
+		ysmin[10]={48,55,55,55,57,56,55,56,57,55},
+		xsdel[10]={64,44,62,60,67,60,64,58,60,62},
+		ysdel[10]={91,89,91,90,87,89,91,88,91,91};
+
+	//框出目标数字部分
+	int xmin=0,ymin=0,xmax=200,ymax=200,flag=0,i=0,j=0;
+	unsigned char* p = (unsigned char*)(dst->imageData);
+	
+	for(i=50;i<100;++i)//col,width,x
+	{
+		for(j=35;j<130;++j)//row,height,y
+		{
+			if((int)p[i+j*dst->widthStep]==0)
+			{
+				xmin=i;
+				flag=1;
+				break;
+			}
+		}
+		if(flag) break;
+	}
+	
+	flag=0;
+	for(j=35;j<100;++j)
+	{
+		for(i=50;i<150;++i)
+		{
+			if((int)p[i+j*dst->widthStep]==0)
+			{
+				ymin=j;
+				flag=1;
+				break;
+			}
+		}
+		if(flag) break;
+	}
+	
+	flag=0;
+	for(i=140;i>100;--i)
+	{
+		for(j=150;j>70;--j)
+		{
+			if((int)p[i+j*dst->widthStep]==0)
+			{
+				xmax=i;
+				flag=1;
+				break;
+			}
+		}
+		if(flag) break;
+	}
+	
+	flag=0;
+	for(j=150;j>100;--j)
+	{
+		for(i=140;i>100;--i)
+		{			
+			if((int)p[i+j*dst->widthStep]==0)
+			{
+				ymax=j;
+				flag=1;
+				break;
+			}
+		}
+		if(flag) break;
+	}
+	//cout<<"被检测图像数字位置："<<xmin<<"  "<<xmax<<"  "<<ymin<<"  "<<ymax<<endl;
+
+	//判断数字
+	int countdiff=0,k=0,mindiff=5000,tempdiff=0,rnum=-2;
+	unsigned char* q;
+	IplImage *sam;
+	
+	for(k=0;k<10;++k)
+	{
+		sam = cvLoadImage(SamLoca[k].c_str(), CV_LOAD_IMAGE_GRAYSCALE);
+		if(!sam)
+		{
+			cout<<"Can not load sample image "<<k<<endl;
+			return -1;
+		}
+		q = (unsigned char*)(sam->imageData);
+
+		for(i=0;i<=xsdel[k];++i)
+		{
+			for(j=0;j<=ysdel[k];++j)
+			{
+				if((int)p[xmin+i+(j+ymin)*dst->widthStep]!=(int)q[xsmin[k]+i+(j+ysmin[k])*sam->widthStep])
+					tempdiff++;
+			}
+		}
+		cout<<"与"<<k<<"的样本差别像素数为："<<tempdiff<<endl;
+		if(tempdiff<mindiff) 
+		{
+			mindiff=tempdiff;
+			rnum=k;
+		}
+		tempdiff = 0;
+		cvReleaseImage(&sam);
+	}
+	if(mindiff>1000) return -1;
+	return rnum;
 }
 
 //获得图片中的数字
