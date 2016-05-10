@@ -22,17 +22,20 @@ include_directories(
 
 set(SOURCE_FILES
         src/main.cpp
+        
         src/ROSThread.cpp
         src/IMURecorder.cpp
-        src/VideoRecorder.cpp
-        src/ARDrone.cpp
-        src/GridDetector.cpp
         src/IMUData.cpp
+        src/VideoRecorder.cpp
+		src/CMDReciever.cpp
+
+        src/ARDrone.cpp
         src/PIDController.cpp
+
+        src/GridDetector.cpp
         src/AffineTransform.cpp
         src/PredictNumber.cpp
         src/SearchNumber.cpp
-				src/CMDReciever.cpp
 #blobtrack_sample.cpp
 #enteringblobdetection.cpp
         #src/ARVideo.cpp
