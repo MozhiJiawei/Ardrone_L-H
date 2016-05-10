@@ -49,7 +49,7 @@ void ImgRecon::ReInit(const IplImage *img)
 	CvSeq *contour = 0, *cont=0, *contemp=0, *maxcontemp=0;
 	int contours = 0;
 	contours = cvFindContours( dst, storage, &contour, sizeof(CvContour), CV_RETR_LIST, CV_CHAIN_APPROX_SIMPLE);
-	int face=0, ConArea=0;
+	int face=0;
 	//最大轮廓dst
 	for (contemp = contour;contemp != 0; contemp = contemp->h_next)  
     {
@@ -64,7 +64,6 @@ void ImgRecon::ReInit(const IplImage *img)
 	{
 		ConExist = 1;
 		NumResult = -1;
-		cout<<"ConArea="<<ConArea<<endl;
 		//多边形拟合dst1
 		cont = cvApproxPoly(maxcontemp, sizeof(CvContour), storage1, CV_POLY_APPROX_DP, cvContourPerimeter(maxcontemp)*0.02, 0);//倒数第二个参数为拟合后周长误差，最后参数若为0，只处理src_seq指向的轮廓。1则处理整个双向链表中的所有轮廓。
 		cvDrawContours (dst1, cont, cvScalar(255,0,0), cvScalar(255,0,0), 1, 4, 4);
@@ -144,7 +143,6 @@ void ImgRecon::ReInit(const IplImage *img)
 	cvReleaseImage(&src);
 	cvReleaseMemStorage (&storage);
 	cvReleaseMemStorage (&storage1);
-	cout<<"ConArea1="<<ConArea<<endl;
 }
 
 //获得图片中的数字
@@ -162,7 +160,6 @@ CvPoint ImgRecon::GetCenterPoint()
 //获取轮廓面积
 int ImgRecon::GetContourArea()
 {
-	cout<<"ConArea2="<<ConArea<<endl;
 	return ConArea;
 }
 
