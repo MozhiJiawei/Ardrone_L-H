@@ -13,11 +13,11 @@ using namespace std;
 
 ImgRecon::ImgRecon(const IplImage *img)
 {
-	SamLoca[0]="F:\\photo\\numbers\\Logs\\sample0.bmp";SamLoca[5]="F:\\photo\\numbers\\Logs\\sample5.bmp";//样本存放地址
-	SamLoca[1]="F:\\photo\\numbers\\Logs\\sample1.bmp";SamLoca[6]="F:\\photo\\numbers\\Logs\\sample6.bmp";
-	SamLoca[2]="F:\\photo\\numbers\\Logs\\sample2.bmp";SamLoca[7]="F:\\photo\\numbers\\Logs\\sample7.bmp";
-	SamLoca[3]="F:\\photo\\numbers\\Logs\\sample3.bmp";SamLoca[8]="F:\\photo\\numbers\\Logs\\sample8.bmp";
-	SamLoca[4]="F:\\photo\\numbers\\Logs\\sample4.bmp";SamLoca[9]="F:\\photo\\numbers\\Logs\\sample9.bmp";
+	SamLoca[0]="samples\\sample0.bmp";SamLoca[5]="samples\\sample5.bmp";//样本存放地址
+	SamLoca[1]="samples\\sample1.bmp";SamLoca[6]="samples\\sample6.bmp";
+	SamLoca[2]="samples\\sample2.bmp";SamLoca[7]="samples\\sample7.bmp";
+	SamLoca[3]="samples\\sample3.bmp";SamLoca[8]="samples\\sample8.bmp";
+	SamLoca[4]="samples\\sample4.bmp";SamLoca[9]="samples\\sample9.bmp";
 
 	ReInit(img);
 }
