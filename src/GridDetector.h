@@ -12,6 +12,6 @@
 
 using namespace std;
 bool detectCircleGrids(const cv::Mat& img, int m, int n,
-		vector<cv::Point2f>& featPts, float thres = 20.0f);
+    vector<cv::Point2f>& featPts, float thres = 20.0f);
 
 #endif /* GRIDDETECTOR_H_ */

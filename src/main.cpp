@@ -212,7 +212,7 @@ void* Control_loop(void* param) {
 
   cout << filename << endl;
 #endif
-	cvNamedWindow("a",1);
+  cvNamedWindow("a",1);
   while (ros::ok()) {
     usleep(1000);
     lostframe ++;
@@ -223,9 +223,9 @@ void* Control_loop(void* param) {
 #if MyCode 
     if (videoreader.newframe) {
       cur_mode = cmdreader.GetMode();
-			if (cur_mode == START) {
-				cout << "START";
-			}
+      if (cur_mode == START) {
+        cout << "START";
+      }
       frame_count++;
       lostframe=0;
       videoreader.newframe=false;
@@ -233,74 +233,74 @@ void* Control_loop(void* param) {
 
       videoreader.getImage(imgmat);
       *imgsrc = imgmat;
-			cvShowImage("a",imgsrc);
+      cvShowImage("a",imgsrc);
 
       switch (cur_mode) {
-      case START:
-        drone.takeOff();
-        next_mode = TAKEOFF;
-        break;
-      case TAKEOFF:
-				if(thread.navdata.altd > 400)
-				{
-        time(&timep);
-        a = localtime(&timep);
-        log << endl << a->tm_mday << " " << a->tm_hour << ":" 
-            << a->tm_min << ":" << a->tm_sec << endl;
+        case START:
+          drone.takeOff();
+          next_mode = TAKEOFF;
+          break;
+        case TAKEOFF:
+          if(thread.navdata.altd > 400)
+          {
+            time(&timep);
+            a = localtime(&timep);
+            log << endl << a->tm_mday << " " << a->tm_hour << ":" 
+              << a->tm_min << ":" << a->tm_sec << endl;
 
-        img_recon.ReInit(imgsrc);
-        if (img_recon.ContourExist()) {
-          cout << "conter found" << endl;
-          centerx = img_recon.GetCenterPoint().x;
-          centery = img_recon.GetCenterPoint().y;
-          log << "center founded: x = " << centerx 
-              << "  y = " << centery << endl;
+            img_recon.ReInit(imgsrc);
+            if (img_recon.ContourExist()) {
+              cout << "conter found" << endl;
+              centerx = img_recon.GetCenterPoint().x;
+              centery = img_recon.GetCenterPoint().y;
+              log << "center founded: x = " << centerx 
+                << "  y = " << centery << endl;
 
 #if MyPIDMode
 #else
-          CLIP3(10.0, centerx, 590.0);
-          CLIP3(10.0, centery, 350.0);
-          lasterrorx = errorx;
-          lasterrory = errory;
-          errorx = centerx - targetx;
-          errory = centery - targety;
-          log << "e_x = " << errorx << "  e_y = " << errory << endl;
-          targetvx = -vk * errory - vk*(errory - lasterrory);
-          targetvy = -vk * errorx - vk*(errorx - lasterrorx);
-          if (errory > 80 || errory < -80) { 
-            targetvx += -vk * errory + 80 * vk; 
-          }
-          if (errorx > 80 || errorx < -80) { 
-            targetvy += -vk * errorx + 80 * vk; 
-          }
-          CLIP3(-1500.0, targetvx, 1500.0);
-          CLIP3(-1500.0, targetvy, 1500.0);
-          log << "t_vx = " << targetvx << "  t_vy = " << targetvy << endl;
-          log << " Height:"<<setw(8)<< thread.navdata.altd << "  v: "
-              <<setw(8) <<  thread.navdata.vx << " "<<setw(8)
-              << thread.navdata.vy<<endl ;//<<" "<< thread.navdata.vz;
+              CLIP3(10.0, centerx, 590.0);
+              CLIP3(10.0, centery, 350.0);
+              lasterrorx = errorx;
+              lasterrory = errory;
+              errorx = centerx - targetx;
+              errory = centery - targety;
+              log << "e_x = " << errorx << "  e_y = " << errory << endl;
+              targetvx = -vk * errory - vk*(errory - lasterrory);
+              targetvy = -vk * errorx - vk*(errorx - lasterrorx);
+              if (errory > 80 || errory < -80) { 
+                targetvx += -vk * errory + 80 * vk; 
+              }
+              if (errorx > 80 || errorx < -80) { 
+                targetvy += -vk * errorx + 80 * vk; 
+              }
+              CLIP3(-1500.0, targetvx, 1500.0);
+              CLIP3(-1500.0, targetvy, 1500.0);
+              log << "t_vx = " << targetvx << "  t_vy = " << targetvy << endl;
+              log << " Height:"<<setw(8)<< thread.navdata.altd << "  v: "
+                <<setw(8) <<  thread.navdata.vx << " "<<setw(8)
+                << thread.navdata.vy<<endl ;//<<" "<< thread.navdata.vz;
 
-          forwardb = pidVX.getOutput(targetvx - thread.navdata.vx, 0.5);
-          leftr = pidVY.getOutput(targetvy - thread.navdata.vy, 0.5);
-          leftr /= 15000;        forwardb /= 15000;
-          if (thread.navdata.altd < 1400) {
-            upd = 0.002 * (1400 - thread.navdata.altd);
-          }
-          if (thread.navdata.altd > 1450) {
-            upd = 0.002 * (1450 - thread.navdata.altd);
-          }
-          CLIP3(-0.1, leftr, 0.1);
-          CLIP3(-0.1, forwardb, 0.1);
-          CLIP3(-0.2, upd, 0.2);
-          log << "y_left = " << leftr << "  x_forward = " << forwardb
-              << "  z_up = " << upd << endl;
+              forwardb = pidVX.getOutput(targetvx - thread.navdata.vx, 0.5);
+              leftr = pidVY.getOutput(targetvy - thread.navdata.vy, 0.5);
+              leftr /= 15000;        forwardb /= 15000;
+              if (thread.navdata.altd < 1400) {
+                upd = 0.002 * (1400 - thread.navdata.altd);
+              }
+              if (thread.navdata.altd > 1450) {
+                upd = 0.002 * (1450 - thread.navdata.altd);
+              }
+              CLIP3(-0.1, leftr, 0.1);
+              CLIP3(-0.1, forwardb, 0.1);
+              CLIP3(-0.2, upd, 0.2);
+              log << "y_left = " << leftr << "  x_forward = " << forwardb
+                << "  z_up = " << upd << endl;
 
 #endif
-        }
-				}
-        break;
-      default:
-        break;
+            }
+          }
+          break;
+        default:
+          break;
       }
       c = (char) cv::waitKey(1);
       // ESC key pressed
@@ -315,12 +315,12 @@ void* Control_loop(void* param) {
       videoreader.newframe=false;
 
       cout << "Battery:" << thread.navdata.batteryPercent << "% Rotate: " 
-           <<setw(8) << thread.navdata.rotX << " "<<setw(8) 
-           << thread.navdata.rotY <<" ";//<<setw(12) << thread.navdata.rotZ;
+        <<setw(8) << thread.navdata.rotX << " "<<setw(8) 
+        << thread.navdata.rotY <<" ";//<<setw(12) << thread.navdata.rotZ;
 
       cout << " Height:"<<setw(8)<< thread.navdata.altd << "  v: "
-           <<setw(8) <<  thread.navdata.vx << " "<<setw(8)
-           << thread.navdata.vy<<endl ;//<<" "<< thread.navdata.vz;
+        <<setw(8) <<  thread.navdata.vx << " "<<setw(8)
+        << thread.navdata.vy<<endl ;//<<" "<< thread.navdata.vz;
 
       if (!videoreader.curImg.empty()) {
         cloneImg(videoreader.curImg, img); //克隆当前相机照片到处理照片
@@ -598,8 +598,8 @@ void* Control_loop(void* param) {
             CLIP3(10.0, centerxavr, 590.0);
             CLIP3(10.0, centeryavr, 350.0);
             lasterrorx=errorx;
-      if(!video)
-            lasterrory=errory;
+            if(!video)
+              lasterrory=errory;
             errorx= centerxavr-targetx;
             errory=centeryavr-targety ;
             targetvx = - vk * errory- vk*(errory-lasterrory);
@@ -831,11 +831,11 @@ void* Control_loop(void* param) {
     }
 #endif
 #if MyCode
-		cur_mode = cmdreader.GetMode();
+    cur_mode = cmdreader.GetMode();
     if (cur_mode != MANUL) {
       cmdreader.RunNextMode(next_mode, leftr, forwardb, upd, 
           turnleftr, drone);
-      
+
     }
 #endif
     switch (c) {
@@ -845,8 +845,8 @@ void* Control_loop(void* param) {
 
       case 'x':
         drone.land();
-				next_mode = STOP;
-				cmdreader.SetMode(next_mode);
+        next_mode = STOP;
+        cmdreader.SetMode(next_mode);
         break;
 
       case 'c':
