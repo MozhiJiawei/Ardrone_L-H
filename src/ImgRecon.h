@@ -16,10 +16,10 @@ using namespace std;
 class ImgRecon  
 {
 public:
-	ImgRecon(const IplImage *img);//可以直接传彩图
+	ImgRecon(IplImage *img);//可以直接传彩图
 	virtual ~ImgRecon();
-	void ReInit(const IplImage *img);//更改下一张图片
-	int GetNumber();//获得图片中的数字
+	void ReInit(IplImage *img);//更改下一张图片
+	int GetNumber();//获得图片中的数字，-2未处理，-1找不到
 	CvPoint GetCenterPoint();//获得轮廓中心
 	int GetContourArea();//获取轮廓面积
 	bool ContourExist();//轮廓存在与否
@@ -29,11 +29,12 @@ private:
 	bool ConExist;//轮廓是否存在
 	int ConArea;//轮廓面积
 	CvPoint Center;//轮廓中心点
+	CvPoint2D32f corners1[4];//四个顺时针排列的角点，第一个为左上
 	string SamLoca[10];//样本位置
 	int NumDetec(const IplImage* dst);//数字判断函数
-	//IplImage 
-	//	*src,//灰度图，二值化，腐蚀
-	//	*dst,//复制src后找轮廓
+	IplImage 
+		*src;//灰度图，二值化，腐蚀
+	//	*dst;//复制src后找轮廓，存放标准化后的图片
 	//	*dst1;//画拟合曲线，找角点
 	
 };
