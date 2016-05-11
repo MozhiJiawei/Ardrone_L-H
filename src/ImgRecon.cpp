@@ -18,7 +18,9 @@ ImgRecon::ImgRecon(const IplImage *img)
 	SamLoca[3]="samples\\sample3.bmp";SamLoca[8]="samples\\sample8.bmp";
 	SamLoca[4]="samples\\sample4.bmp";SamLoca[9]="samples\\sample9.bmp";
 
-	ReInit(img);
+	if(img != NULL) {
+		ReInit(img);
+	}
 }
 
 ImgRecon::~ImgRecon()
