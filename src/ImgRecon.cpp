@@ -2,7 +2,6 @@
 //
 //////////////////////////////////////////////////////////////////////
 
-#include "stdafx.h"
 #include "ImgRecon.h"
 #include <iostream>
 using namespace std;
