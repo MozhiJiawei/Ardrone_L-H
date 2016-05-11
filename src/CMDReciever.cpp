@@ -40,11 +40,17 @@ ModeType CMDReciever::GetMode() {
 	return cur_mode;
 }
 
+void CMDReciever::SetMode(ModeType mode) {
+	pthread_mutex_lock(&_mode_mutex);
+	_mode = mode;
+	pthread_mutex_unlock(&_mode_mutex);
+}
+
 void CMDReciever::RunNextMode(ModeType mode, double y_left, double x_forward,
     double z_up, double angle_turn, ARDrone& drone) {
 
 	pthread_mutex_lock(&_mode_mutex);
-	ModeType _mode = mode;
+	_mode = mode;
 	pthread_mutex_unlock(&_mode_mutex);
   cout << "running mode = " << mode << endl;
 

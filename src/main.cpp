@@ -187,7 +187,7 @@ void* Control_loop(void* param) {
   ofstream log;
   time_t timep;
   struct tm *a;
-
+  ModeType cur_mode, next_mode;
   log.open("/home/mozhi/Logs/PIDStates.txt");
   if (!log) {
     cout << "cannot open file to log" << endl;
@@ -195,9 +195,6 @@ void* Control_loop(void* param) {
 
   cout << "Start!" << endl;
 #if Test
-  //CMDReciever test
-  ModeType cur_mode, next_mode;
-
   //Get local time test
   char filename[50];
   time_t timep;
@@ -229,7 +226,7 @@ void* Control_loop(void* param) {
 
       switch (cur_mode) {
       case START:
-        drone.takeOff;
+        drone.takeOff();
         next_mode = TAKEOFF;
         break;
       case TAKEOFF:
@@ -239,7 +236,7 @@ void* Control_loop(void* param) {
             << a->tm_min << ":" << a->tm_sec << endl;
 
         img_recon.ReInit(imgsrc);
-        if (img_recon.ContourExist) {
+        if (img_recon.ContourExist()) {
           cout << "conter found" << endl;
           centerx = img_recon.GetCenterPoint().x;
           centery = img_recon.GetCenterPoint().y;

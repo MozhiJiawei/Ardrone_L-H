@@ -76,16 +76,25 @@ void ROSThread::imuCb(const sensor_msgs::Imu::ConstPtr imuPtr) {
 }
 
 void ROSThread::cmdCb(const keyboard::Key::ConstPtr msg) {
-	cv::Mat curImg;
-	vidRec.getImage(curImg);
-	if (!curImg.empty()) {
-		cout << "save!" << endl;
-		cmdRec.SaveImage(curImg);
+	switch(msg->code) {
+		case (keyboard::Key::KEY_g):
+			cmdRec.SetMode(START);
+			cout << "Set START Success" << endl;
+			break;
+		default:
+			cv::Mat curImg;
+			vidRec.getImage(curImg);
+			if (!curImg.empty()) {
+				cout << "save!" << endl;
+				cmdRec.SaveImage(curImg);
+			}
+			else {
+				cout << "no image!" << endl;
+			} 
+			break;
 	}
-	else {
-		cout << "no image!" << endl;
-	} 
 	cout << msg->code << endl;
+	cout << keyboard::Key::KEY_g << endl;
 }
 
 void ROSThread::navdataCb(const ardrone_autonomy::Navdata::ConstPtr navPtr) {

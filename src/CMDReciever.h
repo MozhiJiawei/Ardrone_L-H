@@ -15,7 +15,7 @@
 
 using namespace std;
 
-enum ModeType {TAKEOFF, LAND, STOP, FLYING, MANUL, START};
+enum ModeType {TAKEOFF, LAND, STOP, FLYING, START, MANUL};
 
 class CMDReciever {
 public:
@@ -24,6 +24,7 @@ public:
 
 	void SaveImage(const cv::Mat& src);
 	ModeType GetMode();
+	void SetMode(ModeType mode);
 	void RunNextMode(ModeType mode, double y_left, double x_forward,
       double z_up, double angle_turn, ARDrone& drone);
 
