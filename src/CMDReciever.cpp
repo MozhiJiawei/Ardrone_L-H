@@ -40,9 +40,21 @@ ModeType CMDReciever::GetMode() {
 	return cur_mode;
 }
 
-void CMDReciever::SetMode(ModeType mode) {
+void CMDReciever::RunNextMode(ModeType mode, double y_left, double x_forward,
+    double z_up, double angle_turn, ARDrone& drone) {
+
 	pthread_mutex_lock(&_mode_mutex);
 	ModeType _mode = mode;
 	pthread_mutex_unlock(&_mode_mutex);
-	cout << "set mode success";
+  cout << "running mode = " << mode << endl;
+
+  switch (mode) {
+  case TAKEOFF:
+  case LAND:
+  case FLYING:
+    drone.move(y_left, x_forward, z_up, angle_turn);
+    break;
+  default:
+    break;
+  }
 }

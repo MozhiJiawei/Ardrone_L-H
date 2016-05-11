@@ -22,6 +22,7 @@
 #include "ROSThread.h"
 #include "VideoRecorder.h"
 #include "IMURecorder.h"
+#include "ImgRecon.h"
 #include "GridDetector.h"
 #include "PIDController.h"
 #include "AffineTransform.h"
@@ -45,7 +46,9 @@
 #include <keyboard/Key.h>
 using namespace std;
 
-#define Test 1
+#define Test 0
+#define MyCode 1
+#define MyPIDMode 0
 
 static int mGrids = 5;
 static int nGrids = 6;
@@ -91,6 +94,7 @@ void* Control_loop(void* param) {
   VideoRecorder videoreader("/home/mozhi/Record/video_ts.txt", "/home/mozhi/Record/video.avi");
   CMDReciever cmdreader("/home/mozhi/Record/cmd.txt");
   ROSThread thread(imureader, videoreader, cmdreader);
+  ImgRecon img_recon(NULL);
   thread.showVideo = true;
   ImgRGB img(640, 360);
   IplImage *imgsrc,*imgr,* imgg, *imgb,*squaretmp,*squaretmp1,*imgyellow,*imgnumber,*imgnumberwarp;
@@ -106,8 +110,8 @@ void* Control_loop(void* param) {
 
   system("rosservice call /ardrone/setcamchannel 1");
   ////////////////////////////////
-  ARDrone* drone = new ARDrone();
-  drone->setup();
+  ARDrone drone;
+  drone.setup();
   ros::Rate loop_rate(50);
   int i , j;
   uchar * data, *datar, *datag, *datab;
@@ -180,11 +184,19 @@ void* Control_loop(void* param) {
   PidW.setParam(vkp, 20, vkd, 2);
   targetx=320,targety=185;
   //////////////////////////////////////////////////////////
+  ofstream log;
+  time_t timep;
+  struct tm *a;
+
+  log.open("/home/mozhi/Logs/PIDStates.txt");
+  if (!log) {
+    cout << "cannot open file to log" << endl;
+  }
+
   cout << "Start!" << endl;
 #if Test
   //CMDReciever test
-  ModeType cur_mode;
-  cur_mode = cmdreader.GetMode();
+  ModeType cur_mode, next_mode;
 
   //Get local time test
   char filename[50];
@@ -200,12 +212,87 @@ void* Control_loop(void* param) {
   while (ros::ok()) {
     usleep(1000);
     lostframe ++;
-    if (c=='x')  drone->land();
-    if (lostframe>100) drone->hover(); // if the video is not fluent
-    if (lostframe>3000) drone->land(); // if the video is not fluent
+    if (c=='x')  drone.land();
+    if (lostframe>100) drone.hover(); // if the video is not fluent
+    if (lostframe>3000) drone.land(); // if the video is not fluent
     //////////////////////////test/////////////////////////////////////////////////
-#if Test
-    //////////////////////////test///////////对一帧图片的处理//////////////////////////////////////
+#if MyCode 
+    if (videoreader.newframe) {
+      cur_mode = cmdreader.GetMode();
+      frame_count++;
+      lostframe=0;
+      videoreader.newframe=false;
+      cout << "Battery:" << thread.navdata.batteryPercent << endl;
+
+      videoreader.getImage(imgmat);
+      *imgsrc = imgmat;
+
+      switch (cur_mode) {
+      case START:
+        drone.takeOff;
+        next_mode = TAKEOFF;
+        break;
+      case TAKEOFF:
+        time(&timep);
+        a = localtime(&timep);
+        log << endl << a->tm_mday << " " << a->tm_hour << ":" 
+            << a->tm_min << ":" << a->tm_sec << endl;
+
+        img_recon.ReInit(imgsrc);
+        if (img_recon.ContourExist) {
+          cout << "conter found" << endl;
+          centerx = img_recon.GetCenterPoint().x;
+          centery = img_recon.GetCenterPoint().y;
+          log << "center founded: x = " << centerx 
+              << "  y = " << centery << endl;
+
+#if MyPIDMode
+#else
+          CLIP3(10.0, centerx, 590.0);
+          CLIP3(10.0, centery, 350.0);
+          lasterrorx = errorx;
+          lasterrory = errory;
+          errorx = centerx - targetx;
+          errory = centery - targety;
+          log << "e_x = " << errorx << "  e_y = " << errory << endl;
+          targetvx = -vk * errory - vk*(errory - lasterrory);
+          targetvy = -vk * errorx - vk*(errorx - lasterrorx);
+          if (errory > 80 || errory < -80) { 
+            targetvx += -vk * errory + 80 * vk; 
+          }
+          if (errorx > 80 || errorx < -80) { 
+            targetvy += -vk * errorx + 80 * vk; 
+          }
+          CLIP3(-1500.0, targetvx, 1500.0);
+          CLIP3(-1500.0, targetvy, 1500.0);
+          log << "t_vx = " << targetvx << "  t_vy = " << targetvy << endl;
+          log << " Height:"<<setw(8)<< thread.navdata.altd << "  v: "
+              <<setw(8) <<  thread.navdata.vx << " "<<setw(8)
+              << thread.navdata.vy<<endl ;//<<" "<< thread.navdata.vz;
+
+          forwardb = pidVX.getOutput(targetvx - thread.navdata.vx, 0.5);
+          leftr = pidVY.getOutput(targetvy - thread.navdata.vy, 0.5);
+          leftr /= 15000;        forwardb /= 15000;
+          if (thread.navdata.altd < 1400) {
+            upd = 0.002 * (1400 - thread.navdata.altd);
+          }
+          if (thread.navdata.altd > 1450) {
+            upd = 0.002 * (1450 - thread.navdata.altd);
+          }
+          CLIP3(-0.1, leftr, 0.1);
+          CLIP3(-0.1, forwardb, 0.1);
+          CLIP3(-0.2, upd, 0.2);
+          log << "y_left = " << leftr << "  x_forward = " << forwardb
+              << "  z_up = " << upd << endl;
+
+#endif
+        }
+        break;
+      default:
+        break;
+      }
+
+    }
 #else
     if (videoreader.newframe){// new frame?
       frame_count++;
@@ -224,8 +311,7 @@ void* Control_loop(void* param) {
       if (!videoreader.curImg.empty()) {
         cloneImg(videoreader.curImg, img); //克隆当前相机照片到处理照片
         bgr2rgb(img); 
-        if (videoreader._recording) {
-          drawPoint(img, 15, 15, 6, 255, 0, 0, 2); //统计照片像素点
+        if (videoreader._recording) { drawPoint(img, 15, 15, 6, 255, 0, 0, 2); //统计照片像素点
         }
       }
       videoreader.getImage(imgmat);
@@ -241,7 +327,6 @@ void* Control_loop(void* param) {
       findSquares( imgmatyellow, squares,controlMode);
       drawSquares( imgmat, squares );
       cvShowImage("imgyellow",imgyellow);
-      cout<<"test_targethffffffffffff"<<thread.navdata.altd<<endl;
       if(controlMode==4) //对不同停机坪数字的处理，水平飞行处理
       {
         //if(mynumner.isNumFind(currentnumber))controlMode=403;
@@ -498,6 +583,7 @@ void* Control_loop(void* param) {
             CLIP3(10.0, centerxavr, 590.0);
             CLIP3(10.0, centeryavr, 350.0);
             lasterrorx=errorx;
+      if(!video)
             lasterrory=errory;
             errorx= centerxavr-targetx;
             errory=centeryavr-targety ;
@@ -563,23 +649,23 @@ void* Control_loop(void* param) {
       else if(controlMode==405)
       {
         //锁定数字降落
-        drone->land();
+        drone.land();
         land_takeoff_time=clock();
         while(thread.navdata.altd!=0);
         land_takeoff_time=clock();   
-        drone->takeOff();
+        drone.takeOff();
         while(static_cast<double>(clock()-land_takeoff_time)/CLOCKS_PER_SEC*1000<6000);
         land_takeoff_time=clock();
         while(static_cast<double>(clock()-land_takeoff_time)/CLOCKS_PER_SEC*1000<1000);
         {
           if(thread.navdata.altd-targeth>-20)
           {
-            drone->moveUp((float) 0.2);
+            drone.moveUp((float) 0.2);
           }
         }
-        if(!(drone->isFlying))
+        if(!(drone.isFlying))
         {
-          drone->takeOff();
+          drone.takeOff();
           land_takeoff_time=clock();
           while(static_cast<double>(clock()-land_takeoff_time)/CLOCKS_PER_SEC*1000<4000);
         }
@@ -624,6 +710,7 @@ void* Control_loop(void* param) {
           omegasquare.y=upside;
           omegasquare.width=rightside-leftside;
           omegasquare.height=downside-upside;
+          //findones returns the ones of omegasquare in imageyellow
           yellowpercent=1.0*findones(imgyellow,omegasquare)/(imgSize.height*imgSize.width);
           cout<<"yellowpercent_findones"<<yellowpercent<<endl;
           warp_mat=warpPerspective(imgyellow, imgnumberwarp,squares[0]);
@@ -721,61 +808,68 @@ void* Control_loop(void* param) {
       // c=-1;
       c = (char) cv::waitKey(1);
       // ESC key pressed
-      if (c == 27 || c == 'q'){drone->land(); break;}
+      if (c == 27 || c == 'q'){drone.land(); break;}
       if (c > -1) cout << " key press: " << (int) c << endl;
+    }
+#endif
+#if MyCode
+    if (cur_mode != MANUL) {
+      cmdreader.RunNextMode(next_mode, leftr, forwardb, upd, 
+          turnleftr, drone);
+      
     }
 #endif
     switch (c) {
       case 'z':
-        drone->takeOff();
+        drone.takeOff();
         break;
 
       case 'x':
-        drone->land();
+        drone.land();
         break;
 
       case 'c':
-        drone->resumeNormal();
+        drone.resumeNormal();
         break;
 
       case 'v':
-        drone->emergency();
+        drone.emergency();
         break;
 
       case 'h':
-        drone->hover();
+        drone.hover();
         break;
 
       case 'i':
-        drone->moveUp((float) 0.2);
+        drone.moveUp((float) 0.2);
         break;
 
       case 'k':
-        drone->moveDown((float) 0.2);
+        drone.moveDown((float) 0.2);
         break;
 
       case 'j':
-        drone->turnLeft((float) 0.4);
+        drone.turnLeft((float) 0.4);
         break;
 
       case 'l':
-        drone->turnRight((float) 0.4);
+        drone.turnRight((float) 0.4);
         break;
 
       case 'a':
-        drone->moveLeft((float) 0.2);
+        drone.moveLeft((float) 0.2);
         break;
 
       case 'd':
-        drone->moveRight((float) 0.2);
+        drone.moveRight((float) 0.2);
         break;
 
       case 'w':
-        drone->moveForward((float) 0.2);
+        drone.moveForward((float) 0.2);
         break;
 
       case 's':
-        drone->moveBackward((float) 0.2);
+        drone.moveBackward((float) 0.2);
         break;
       case 't':
         if(controlMode==3)
@@ -843,16 +937,17 @@ void* Control_loop(void* param) {
         break;
 
       default:
+#if !MyCode
         switch (controlMode) {
           case 0:
-            drone->hover();
+            drone.hover();
             break;
           case 1:
             break;
           case 2:
             break;
           case 3:
-            drone->move(leftr, forwardb, upd, turnleftr);
+            drone.move(leftr, forwardb, upd, turnleftr);
             cout<<"00544!!!!!!!!"<<" "<<forwardb<<endl;
             break;
           case 4:
@@ -862,25 +957,26 @@ void* Control_loop(void* param) {
           case 403:
           case 404:
           case 405:
-            drone->move(leftr, forwardb, upd, 0.0);
+            drone.move(leftr, forwardb, upd, 0.0);
             break;
           case 5:
-            drone->move(leftr, forwardb, upd, 0.0);
+            drone.move(leftr, forwardb, upd, 0.0);
             break;
           case 7:
             break;
           case 8:
             break;
           default:
-            drone->hover();
+            drone.hover();
         }
+#endif
+        break;
     }
 
 
     //cout << endl << "No. of frames: "<< frame_count <<endl;
   }
-  drone->land();
-  delete drone;
+  drone.land();
   cvReleaseImage(&imgr);
   cvReleaseImage(&imgg);
   cvReleaseImage(&imgb);
