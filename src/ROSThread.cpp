@@ -23,11 +23,13 @@ static double getVideoTimeByIMUTime(uint32_t sec, uint32_t usec, double imutime)
   if (num < 20) {
     s_ds += tmV - imutime;
     num++;
-  } else {
+  }
+  else {
     if (bCal) {
       s_ds /= num;
       bCal = false;
-    } else {
+    }
+    else {
       return tmV - s_ds;
     }
   }
@@ -35,7 +37,7 @@ static double getVideoTimeByIMUTime(uint32_t sec, uint32_t usec, double imutime)
 }
 
 ROSThread::ROSThread(IMURecorder& imu, VideoRecorder& vid,
-    CMDReciever& cmd) :	imuRec(imu), vidRec(vid), cmdRec(cmd){
+  CMDReciever& cmd) : imuRec(imu), vidRec(vid), cmdRec(cmd) {
 
   running = false;
   toQuit = false;
@@ -51,7 +53,7 @@ ROSThread::~ROSThread() {
 }
 
 void* ROSThread::threadProc(void* data) {
-  ROSThread* thread = (ROSThread*) data;
+  ROSThread* thread = (ROSThread*)data;
   thread->loop();
   return 0;
 }
@@ -70,28 +72,71 @@ void ROSThread::imuCb(const sensor_msgs::Imu::ConstPtr imuPtr) {
 
   imuRec.addBack(imu);
 
-  if( cbROSThread){
+  if (cbROSThread) {
     (*cbROSThread)();
   }
 }
 
 void ROSThread::cmdCb(const keyboard::Key::ConstPtr msg) {
-  switch(msg->code) {
-    case (keyboard::Key::KEY_g):
-      cmdRec.SetMode(START);
-      cout << "Set START Success" << endl;
-      break;
-    default:
-      cv::Mat curImg;
-      vidRec.getImage(curImg);
-      if (!curImg.empty()) {
-        cout << "save!" << endl;
-        cmdRec.SaveImage(curImg);
-      }
-      else {
-        cout << "no image!" << endl;
-      } 
-      break;
+  switch (msg->code) {
+  case (keyboard::Key::KEY_g) :
+    cmdRec.SetMode(START);
+    break;
+  case keyboard::Key::Key_x:
+    cmdRec.SetMode(MANUL);
+    cmdRec.Key_X_LAND;
+    break;
+  case keyboard::Key::Key_z:
+    cmdRec.SetMode(MANUL);
+    cmdRec.Key_Z_Takeoff();
+    break;
+  case keyboard::Key::Key_h:
+    cmdRec.SetMode(MANUL);
+    cmdRec.Key_H_Hover();
+    break;
+  case keyboard::Key::Key_i:
+    cmdRec.SetMode(MANUL);
+    cmdRec.Key_I_Up();
+    break;
+  case keyboard::Key::Key_k:
+    cmdRec.SetMode(MANUL);
+    cmdRec.Key_K_Down();
+    break;
+  case keyboard::Key::Key_j:
+    cmdRec.SetMode(MANUL);
+    cmdRec.Key_J_Turnleft();
+    break;
+  case keyboard::Key::Key_l:
+    cmdRec.SetMode(MANUL);
+    cmdRec.Key_L_Turnright();
+    break;
+  case keyboard::Key::Key_w:
+    cmdRec.SetMode(MANUL);
+    cmdRec.Key_W_Forward();
+    break;
+  case keyboard::Key::Key_s:
+    cmdRec.SetMode(MANUL);
+    cmdRec.Key_S_Backward();
+    break;
+  case keyboard::Key::Key_a:
+    cmdRec.SetMode(MANUL);
+    cmdRec.Key_A_Left();
+    break;
+  case keyboard::Key::Key_d:
+    cmdRec.SetMode(MANUL);
+    cmdRec.Key_D_Right();
+    break;
+  default:
+    cv::Mat curImg;
+    vidRec.getImage(curImg);
+    if (!curImg.empty()) {
+      cout << "save!" << endl;
+      cmdRec.SaveImage(curImg);
+    }
+    else {
+      cout << "no image!" << endl;
+    }
+    break;
   }
   cout << msg->code << endl;
   cout << keyboard::Key::KEY_g << endl;
@@ -105,7 +150,7 @@ void ROSThread::navdataCb(const ardrone_autonomy::Navdata::ConstPtr navPtr) {
 void ROSThread::vidCb(const sensor_msgs::ImageConstPtr img) {
   // convert to CVImage
   cv_bridge::CvImagePtr cv_ptr = cv_bridge::toCvCopy(img,
-      sensor_msgs::image_encodings::BGR8);
+    sensor_msgs::image_encodings::BGR8);
 
   //	double tmVid = getVideoTimeByIMUTime(img->header.stamp.sec, img->header.stamp.nsec,
   //			tmIMU);
@@ -136,17 +181,17 @@ void ROSThread::loop() {
   cout << "starting navdata thread...\n" << endl;
 
   navsub = node.subscribe(node.resolveName("ardrone/navdata"), 1,
-      &ROSThread::navdataCb, this);
+    &ROSThread::navdataCb, this);
 
   imusub = node.subscribe(node.resolveName("ardrone/imu"), 1,
-      &ROSThread::imuCb, this);
+    &ROSThread::imuCb, this);
 
   cmdsub = node.subscribe(node.resolveName("keyboard/keydown"), 1,
-      &ROSThread::cmdCb, this);
+    &ROSThread::cmdCb, this);
 
   if (showVideo) {
     vidsub = node.subscribe(node.resolveName("ardrone/image_raw"), 1,
-        &ROSThread::vidCb, this);
+      &ROSThread::vidCb, this);
   }
 
   while (!toQuit && node.ok()) {
