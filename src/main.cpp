@@ -185,10 +185,16 @@ void* Control_loop(void* param) {
   targetx=320,targety=185;
   //////////////////////////////////////////////////////////
   ofstream log;
+  char filename[50];
   time_t timep;
   struct tm *a;
-  ModeType cur_mode, next_mode;
-  log.open("/home/mozhi/Logs/PIDStates.txt");
+  time(&timep);
+  a = localtime(&timep);
+  sprintf(filename,"/home/mozhi/Logs/%02d_%02d_%02d_%02d.txt",
+      a->tm_mday, a->tm_hour, a->tm_min, a->tm_sec);
+
+  ModeType cur_mode = STOP, next_mode = STOP;
+  log.open(filename);
   if (!log) {
     cout << "cannot open file to log" << endl;
   }
@@ -206,6 +212,7 @@ void* Control_loop(void* param) {
 
   cout << filename << endl;
 #endif
+	cvNamedWindow("a",1);
   while (ros::ok()) {
     usleep(1000);
     lostframe ++;
@@ -216,6 +223,9 @@ void* Control_loop(void* param) {
 #if MyCode 
     if (videoreader.newframe) {
       cur_mode = cmdreader.GetMode();
+			if (cur_mode == START) {
+				cout << "START";
+			}
       frame_count++;
       lostframe=0;
       videoreader.newframe=false;
@@ -223,6 +233,7 @@ void* Control_loop(void* param) {
 
       videoreader.getImage(imgmat);
       *imgsrc = imgmat;
+			cvShowImage("a",imgsrc);
 
       switch (cur_mode) {
       case START:
@@ -230,6 +241,8 @@ void* Control_loop(void* param) {
         next_mode = TAKEOFF;
         break;
       case TAKEOFF:
+				if(thread.navdata.altd > 400)
+				{
         time(&timep);
         a = localtime(&timep);
         log << endl << a->tm_mday << " " << a->tm_hour << ":" 
@@ -284,11 +297,15 @@ void* Control_loop(void* param) {
 
 #endif
         }
+				}
         break;
       default:
         break;
       }
-
+      c = (char) cv::waitKey(1);
+      // ESC key pressed
+      if (c == 27 || c == 'q'){drone.land(); break;}
+      if (c > -1) cout << " key press: " << (int) c << endl;
     }
 #else
     if (videoreader.newframe){// new frame?
@@ -380,6 +397,7 @@ void* Control_loop(void* param) {
           for(j=0;j<4;j++)
           {
             if(squares[i][j].x<leftside)leftside=squares[i][j].x;
+
             if(squares[i][j].y<upside)upside=squares[i][j].y;
             if(squares[i][j].x>rightside)rightside=squares[i][j].x;
             if(squares[i][j].y>downside)downside=squares[i][j].y;
@@ -600,6 +618,7 @@ void* Control_loop(void* param) {
             CLIP3(-0.2, upd, 0.2);
             if(thread.navdata.altd-targeth>-20)upd=0.2;
 
+
           }
         }
 
@@ -782,6 +801,7 @@ void* Control_loop(void* param) {
       else if(controlMode==5)
       {
         if(mode5start==1)
+
         {
           leftr=velNum[testnumbernow][0];
           forwardb=velNum[testnumbernow][1];
@@ -794,6 +814,7 @@ void* Control_loop(void* param) {
         }
       }
       else
+
       {
         leftr=0;forwardb=0; upd=0;
       }
@@ -810,6 +831,7 @@ void* Control_loop(void* param) {
     }
 #endif
 #if MyCode
+		cur_mode = cmdreader.GetMode();
     if (cur_mode != MANUL) {
       cmdreader.RunNextMode(next_mode, leftr, forwardb, upd, 
           turnleftr, drone);
@@ -823,6 +845,8 @@ void* Control_loop(void* param) {
 
       case 'x':
         drone.land();
+				next_mode = STOP;
+				cmdreader.SetMode(next_mode);
         break;
 
       case 'c':
@@ -866,6 +890,7 @@ void* Control_loop(void* param) {
         break;
 
       case 's':
+
         drone.moveBackward((float) 0.2);
         break;
       case 't':
@@ -969,7 +994,6 @@ void* Control_loop(void* param) {
 #endif
         break;
     }
-
 
     //cout << endl << "No. of frames: "<< frame_count <<endl;
   }
