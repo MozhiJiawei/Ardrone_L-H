@@ -82,47 +82,47 @@ void ROSThread::cmdCb(const keyboard::Key::ConstPtr msg) {
   case (keyboard::Key::KEY_g) :
     cmdRec.SetMode(START);
     break;
-  case keyboard::Key::Key_x:
+  case keyboard::Key::KEY_x:
     cmdRec.SetMode(MANUL);
-    cmdRec.Key_X_LAND;
+    cmdRec.Key_X_LAND();
     break;
-  case keyboard::Key::Key_z:
+  case keyboard::Key::KEY_z:
     cmdRec.SetMode(MANUL);
     cmdRec.Key_Z_Takeoff();
     break;
-  case keyboard::Key::Key_h:
+  case keyboard::Key::KEY_h:
     cmdRec.SetMode(MANUL);
     cmdRec.Key_H_Hover();
     break;
-  case keyboard::Key::Key_i:
+  case keyboard::Key::KEY_i:
     cmdRec.SetMode(MANUL);
     cmdRec.Key_I_Up();
     break;
-  case keyboard::Key::Key_k:
+  case keyboard::Key::KEY_k:
     cmdRec.SetMode(MANUL);
     cmdRec.Key_K_Down();
     break;
-  case keyboard::Key::Key_j:
+  case keyboard::Key::KEY_j:
     cmdRec.SetMode(MANUL);
     cmdRec.Key_J_Turnleft();
     break;
-  case keyboard::Key::Key_l:
+  case keyboard::Key::KEY_l:
     cmdRec.SetMode(MANUL);
     cmdRec.Key_L_Turnright();
     break;
-  case keyboard::Key::Key_w:
+  case keyboard::Key::KEY_w:
     cmdRec.SetMode(MANUL);
     cmdRec.Key_W_Forward();
     break;
-  case keyboard::Key::Key_s:
+  case keyboard::Key::KEY_s:
     cmdRec.SetMode(MANUL);
     cmdRec.Key_S_Backward();
     break;
-  case keyboard::Key::Key_a:
+  case keyboard::Key::KEY_a:
     cmdRec.SetMode(MANUL);
     cmdRec.Key_A_Left();
     break;
-  case keyboard::Key::Key_d:
+  case keyboard::Key::KEY_d:
     cmdRec.SetMode(MANUL);
     cmdRec.Key_D_Right();
     break;

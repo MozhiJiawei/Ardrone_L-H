@@ -83,7 +83,7 @@ void CMDReciever::RunNextMode(ModeType mode, double y_left, double x_forward,
 
 clock_t CMDReciever::GetManualTime() {
   pthread_mutex_lock(&_mode_mutex);
-  clock_t = manul_time = _manul_time;
+  clock_t manul_time = _manul_time;
   pthread_mutex_unlock(&_mode_mutex);
 
   return manul_time;

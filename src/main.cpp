@@ -92,9 +92,7 @@ ofstream fout("/home/mozhi/Record/test.txt", ios::app);
 void* Control_loop(void* param) {
   IMURecorder imureader("/home/mozhi/Record/imu.txt");
   VideoRecorder videoreader("/home/mozhi/Record/video_ts.txt", "/home/mozhi/Record/video.avi");
-  ROSThread thread(imureader, videoreader, cmdreader);
   ImgRecon img_recon(NULL);
-  thread.showVideo = true;
   ImgRGB img(640, 360);
   IplImage *imgsrc, *imgr, *imgg, *imgb, *squaretmp, *squaretmp1, *imgyellow, *imgnumber, *imgnumberwarp;
   CvSize imgSize = { 640,360 }, imgnumbersize = { 128,128 };
@@ -112,6 +110,8 @@ void* Control_loop(void* param) {
   ARDrone drone;
   drone.setup();
   CMDReciever cmdreader("/home/mozhi/Logs/cmd.txt", drone);
+  ROSThread thread(imureader, videoreader, cmdreader);
+  thread.showVideo = true;
   ros::Rate loop_rate(50);
   int i, j;
   uchar * data, *datar, *datag, *datab;
@@ -879,10 +879,10 @@ void* Control_loop(void* param) {
 #if MyCode
     if (cur_mode == cmdreader.GetMode() && cur_mode != MANUL) {
       cmdreader.RunNextMode(next_mode, leftr, forwardb, upd,
-        turnleftr, drone);
+        turnleftr);
 
     }
-    if (cmdreader.GetMode == MANUL) {
+    if (cmdreader.GetMode() == MANUL) {
       if ((clock() - cmdreader.GetManualTime()) / CLOCKS_PER_SEC * 1000 > 1000) {
         drone.hover();
       }
