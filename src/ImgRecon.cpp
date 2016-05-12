@@ -10,7 +10,7 @@ using namespace std;
 // Construction/Destruction
 //////////////////////////////////////////////////////////////////////
 
-ImgRecon::ImgRecon(const IplImage *img)
+ImgRecon::ImgRecon(IplImage *img)
 {
   SamLoca[0]="samples\\sample0.bmp";SamLoca[5]="samples\\sample5.bmp";//样本存放地址
   SamLoca[1]="samples\\sample1.bmp";SamLoca[6]="samples\\sample6.bmp";
@@ -18,7 +18,8 @@ ImgRecon::ImgRecon(const IplImage *img)
   SamLoca[3]="samples\\sample3.bmp";SamLoca[8]="samples\\sample8.bmp";
   SamLoca[4]="samples\\sample4.bmp";SamLoca[9]="samples\\sample9.bmp";
 
-  if(img != NULL) {
+  src = cvCreateImage( cvSize(640,360), IPL_DEPTH_8U, 1);
+  if(img != NULL){
     ReInit(img);
   }
 }
@@ -29,19 +30,19 @@ ImgRecon::~ImgRecon()
 }
 
 //更改下一张图片
-void ImgRecon::ReInit(const IplImage *img)
+void ImgRecon::ReInit(IplImage *img)
 {	
   NumResult = -2;
-  Center = cvPoint(0,0);
+  Center = cvPoint(320,180);
   ConArea = 0;
   ConExist = 0;
 
 
   IplImage 
-    *src,//灰度图，二值化，腐蚀
+    //*src,//灰度图，二值化，腐蚀
     *dst,//复制src后找轮廓
     *dst1;//画拟合曲线，找角点
-  src = cvCreateImage( cvGetSize(img), IPL_DEPTH_8U, 1);
+  //src = cvCreateImage( cvGetSize(img), IPL_DEPTH_8U, 1);
   dst = cvCreateImage( cvGetSize(img), IPL_DEPTH_8U, 1);
   dst1 = cvCreateImage( cvGetSize(img), IPL_DEPTH_8U, 1);
 
@@ -68,8 +69,7 @@ void ImgRecon::ReInit(const IplImage *img)
 
   if(ConArea > 500)//如果面积太小说明没有找到纸片，可以不进行后续处理
   {
-    ConExist = 1;
-    NumResult = -1;
+    ConExist = 1;		
     //多边形拟合dst1
     cont = cvApproxPoly(maxcontemp, sizeof(CvContour), storage1, CV_POLY_APPROX_DP, cvContourPerimeter(maxcontemp)*0.02, 0);//倒数第二个参数为拟合后周长误差，最后参数若为0，只处理src_seq指向的轮廓。1则处理整个双向链表中的所有轮廓。
     cvDrawContours (dst1, cont, cvScalar(255,0,0), cvScalar(255,0,0), 1, 4, 4);
@@ -77,14 +77,15 @@ void ImgRecon::ReInit(const IplImage *img)
     //找角点dst1	
     IplImage *eig_image = cvCreateImage(cvGetSize(img), IPL_DEPTH_32F, 1), *temp_image = cvCreateImage(cvGetSize(img), IPL_DEPTH_32F, 1); ;
     int maxcorners=4;
-    CvPoint2D32f corners1[4];//
+
     cvGoodFeaturesToTrack(dst1, eig_image, temp_image, corners1, &maxcorners, 0.01, 150);//最后一个参数为两个点距离最小值	
 
-    //角点顺时针排序，对于c1图片倾斜太多没办法dst1
+    //角点顺时针排序，对于图片倾斜太多没办法dst1
     CvPoint2D32f cornertemp;
     int xy=corners1[0].x+corners1[0].y, maxxy=xy, minxy=xy, co2=0, co0=0;
     Center.y = corners1[0].y;
     Center.x = corners1[0].x;
+    
     int i = 0;
     for( i = 1; i < maxcorners; i++ )  
     {
@@ -104,6 +105,7 @@ void ImgRecon::ReInit(const IplImage *img)
     }
     Center.x /= i;
     Center.y /= i;
+    cvCircle( img, Center, 10, cvScalar(255,255,255),4);//在轮廓中心画圆
 
     if(co2!=2){
       cornertemp=corners1[co2];
@@ -124,22 +126,6 @@ void ImgRecon::ReInit(const IplImage *img)
       corners1[1]=cornertemp;
     }
 
-    //投影变换src->dst
-    CvMat* warp_mat = cvCreateMat (3, 3, CV_32FC1);
-    CvPoint2D32f dstTri[4];
-    dstTri[0].x = 0;  
-    dstTri[0].y = 0;  
-    dstTri[1].x = 200;  
-    dstTri[1].y = 0;  
-    dstTri[2].x = 200;  
-    dstTri[2].y = 200;  
-    dstTri[3].x = 0;  
-    dstTri[3].y = 200;
-    cvGetPerspectiveTransform(corners1, dstTri, warp_mat);	
-    cvWarpPerspective(src, dst, warp_mat);
-
-    //判断数字
-    NumResult = NumDetec(dst);
 
     //释放不需要的内存
     cvReleaseImage(&eig_image);
@@ -147,9 +133,9 @@ void ImgRecon::ReInit(const IplImage *img)
   }
 
   //释放不需要的内存
-  cvReleaseImage(&dst);
+  //cvReleaseImage(&src);
   cvReleaseImage(&dst1);
-  cvReleaseImage(&src);
+  cvReleaseImage(&dst);
   cvReleaseMemStorage (&storage);
   cvReleaseMemStorage (&storage1);
 }
@@ -249,7 +235,7 @@ int ImgRecon::NumDetec(const IplImage* dst)
           tempdiff++;
       }
     }
-    cout<<"与"<<k<<"的样本差别像素数为："<<tempdiff<<endl;
+    //cout<<"与"<<k<<"的样本差别像素数为："<<tempdiff<<endl;
     if(tempdiff<mindiff) 
     {
       mindiff=tempdiff;
@@ -265,6 +251,28 @@ int ImgRecon::NumDetec(const IplImage* dst)
 //获得图片中的数字
 int ImgRecon::GetNumber()
 {
+  if(NumResult == -2){
+    IplImage *dst;
+    dst = cvCreateImage( cvGetSize(src), IPL_DEPTH_8U, 1);
+    //投影变换src->dst
+    CvMat* warp_mat = cvCreateMat (3, 3, CV_32FC1);
+    CvPoint2D32f dstTri[4];
+    dstTri[0].x = 0;  
+    dstTri[0].y = 0;  
+    dstTri[1].x = 200;  
+    dstTri[1].y = 0;  
+    dstTri[2].x = 200;  
+    dstTri[2].y = 200;  
+    dstTri[3].x = 0;  
+    dstTri[3].y = 200;
+    cvGetPerspectiveTransform(corners1, dstTri, warp_mat);	
+    cvWarpPerspective(src, dst, warp_mat);
+    cvReleaseMat(&warp_mat);
+
+    //判断数字
+    NumResult = NumDetec(dst);
+    cvReleaseImage(&dst);
+  }
   return NumResult;
 }
 
