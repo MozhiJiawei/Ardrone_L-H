@@ -2,6 +2,7 @@
 //
 //////////////////////////////////////////////////////////////////////
 
+//#include "stdafx.h"
 #include "ImgRecon.h"
 #include <iostream>
 using namespace std;
@@ -17,8 +18,9 @@ ImgRecon::ImgRecon(IplImage *img)
   SamLoca[2]="samples\\sample2.bmp";SamLoca[7]="samples\\sample7.bmp";
   SamLoca[3]="samples\\sample3.bmp";SamLoca[8]="samples\\sample8.bmp";
   SamLoca[4]="samples\\sample4.bmp";SamLoca[9]="samples\\sample9.bmp";
-
   src = cvCreateImage( cvSize(640,360), IPL_DEPTH_8U, 1);
+  Center.x = 320;
+  Center.y = 180;
   if(img != NULL){
     ReInit(img);
   }
@@ -33,7 +35,8 @@ ImgRecon::~ImgRecon()
 void ImgRecon::ReInit(IplImage *img)
 {	
   NumResult = -2;
-  Center = cvPoint(320,180);
+  Center.x = 320;
+  Center.y = 180;
   ConArea = 0;
   ConExist = 0;
 
@@ -46,8 +49,31 @@ void ImgRecon::ReInit(IplImage *img)
   dst = cvCreateImage( cvGetSize(img), IPL_DEPTH_8U, 1);
   dst1 = cvCreateImage( cvGetSize(img), IPL_DEPTH_8U, 1);
 
-  cvCvtColor( img, src, CV_BGR2GRAY );//转灰img->src
-  cvThreshold( src, src, 130, 255, CV_THRESH_BINARY);//二值化src
+  //cvCvtColor( img, src, CV_BGR2GRAY );//转灰img->src
+  //cvThreshold( src, src, 130, 255, CV_THRESH_BINARY);//二值化src
+  int a = 0, b = 0, c = 0;//new way to threshold
+    unsigned char* p = (unsigned char*)(img->imageData);
+    unsigned char* q = (unsigned char*)(src->imageData);
+    int i = 0, j = 0;
+    for(i=0;i<640;++i)
+		{
+			for(j=0;j<360;++j)
+			{
+        a=(int)p[i*img->nChannels+(j)*img->widthStep];
+        b=(int)p[i*img->nChannels+(j)*img->widthStep+1];
+        c=(int)p[i*img->nChannels+(j)*img->widthStep+2];
+        
+        if((c-a)>0 && (b-a)>0)
+        {
+          if((a+b+c)<50)
+            q[i*src->nChannels+(j)*src->widthStep]=0;
+          else
+            q[i*src->nChannels+(j)*src->widthStep]=255;          
+        }
+        else
+          q[i*src->nChannels+(j)*src->widthStep]=0;
+      }
+    }
   cvErode( src, src, NULL, 1);//腐蚀src
   cvCopy( src, dst);//备份src->dst
 
@@ -66,13 +92,15 @@ void ImgRecon::ReInit(IplImage *img)
       maxcontemp = contemp;
     }		
   }
-
-  if(ConArea > 500)//如果面积太小说明没有找到纸片，可以不进行后续处理
+cvNamedWindow("dst1", 1);
+cvNamedWindow("src", 1);
+  if(ConArea > 10000)//如果面积太小说明没有找到纸片，可以不进行后续处理
   {
     ConExist = 1;		
     //多边形拟合dst1
-    cont = cvApproxPoly(maxcontemp, sizeof(CvContour), storage1, CV_POLY_APPROX_DP, cvContourPerimeter(maxcontemp)*0.02, 0);//倒数第二个参数为拟合后周长误差，最后参数若为0，只处理src_seq指向的轮廓。1则处理整个双向链表中的所有轮廓。
+    cont = cvApproxPoly(maxcontemp, sizeof(CvContour), storage1, CV_POLY_APPROX_DP, cvContourPerimeter(maxcontemp)*0.1, 0);//倒数第二个参数为拟合后周长误差，最后参数若为0，只处理src_seq指向的轮廓。1则处理整个双向链表中的所有轮廓。
     cvDrawContours (dst1, cont, cvScalar(255,0,0), cvScalar(255,0,0), 1, 4, 4);
+//cout<<"多边形拟合角点数："<<cont->total<<endl;
 
     //找角点dst1	
     IplImage *eig_image = cvCreateImage(cvGetSize(img), IPL_DEPTH_32F, 1), *temp_image = cvCreateImage(cvGetSize(img), IPL_DEPTH_32F, 1); ;
@@ -85,10 +113,11 @@ void ImgRecon::ReInit(IplImage *img)
     int xy=corners1[0].x+corners1[0].y, maxxy=xy, minxy=xy, co2=0, co0=0;
     Center.y = corners1[0].y;
     Center.x = corners1[0].x;
+cvCircle( img, cvPointFrom32f(corners1[0]), 7, cvScalar(255,255,255),3);  
     
-    int i = 0;
     for( i = 1; i < maxcorners; i++ )  
     {
+cvCircle( img, cvPointFrom32f(corners1[i]), 7, cvScalar(255,255,255),3);  
       Center.x += corners1[i].x;
       Center.y += corners1[i].y;
       xy=corners1[i].x+corners1[i].y;
@@ -105,7 +134,7 @@ void ImgRecon::ReInit(IplImage *img)
     }
     Center.x /= i;
     Center.y /= i;
-    cvCircle( img, Center, 10, cvScalar(255,255,255),4);//在轮廓中心画圆
+    
 
     if(co2!=2){
       cornertemp=corners1[co2];
@@ -127,11 +156,14 @@ void ImgRecon::ReInit(IplImage *img)
     }
 
 
+
     //释放不需要的内存
     cvReleaseImage(&eig_image);
     cvReleaseImage(&temp_image);
   }
-
+  cvCircle( img, Center, 7, cvScalar(255,0,255),3);//在轮廓中心画圆
+cvShowImage("src",src);//show src, dst1
+cvShowImage("dst1",dst1);
   //释放不需要的内存
   //cvReleaseImage(&src);
   cvReleaseImage(&dst1);
@@ -143,10 +175,10 @@ void ImgRecon::ReInit(IplImage *img)
 //数字判断函数
 int ImgRecon::NumDetec(const IplImage* dst)
 {
-  int xsmin[10]={68,80,70,71,67,71,68,72,73,70},//样本图片数字的位置
-      ysmin[10]={48,55,55,55,57,56,55,56,57,55},
-      xsdel[10]={64,44,62,60,67,60,64,58,60,62},
-      ysdel[10]={91,89,91,90,87,89,91,88,91,91};
+  int xsmin[10]={68,80,70,71,67,71,68,72,65,70},//样本图片数字的位置
+      ysmin[10]={48,55,55,55,57,56,55,56,55,55},
+      xsdel[10]={64,44,62,60,67,60,64,58,61,62},
+      ysdel[10]={91,89,91,90,87,89,91,88,88,91};
 
   //框出目标数字部分
   int xmin=0,ymin=0,xmax=200,ymax=200,flag=0,i=0,j=0;
@@ -235,7 +267,7 @@ int ImgRecon::NumDetec(const IplImage* dst)
           tempdiff++;
       }
     }
-    //cout<<"与"<<k<<"的样本差别像素数为："<<tempdiff<<endl;
+    cout<<"与"<<k<<"的样本差别像素数为："<<tempdiff<<endl;
     if(tempdiff<mindiff) 
     {
       mindiff=tempdiff;
@@ -244,7 +276,7 @@ int ImgRecon::NumDetec(const IplImage* dst)
     tempdiff = 0;
     cvReleaseImage(&sam);
   }
-  if(mindiff>1000) return -1;
+  if(mindiff>1300) return -1;
   return rnum;
 }
 
