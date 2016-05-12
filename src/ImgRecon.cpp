@@ -2,7 +2,6 @@
 //
 //////////////////////////////////////////////////////////////////////
 
-//#include "stdafx.h"
 #include "ImgRecon.h"
 #include <iostream>
 using namespace std;
@@ -18,6 +17,7 @@ ImgRecon::ImgRecon(IplImage *img)
   SamLoca[2]="samples\\sample2.bmp";SamLoca[7]="samples\\sample7.bmp";
   SamLoca[3]="samples\\sample3.bmp";SamLoca[8]="samples\\sample8.bmp";
   SamLoca[4]="samples\\sample4.bmp";SamLoca[9]="samples\\sample9.bmp";
+
   src = cvCreateImage( cvSize(640,360), IPL_DEPTH_8U, 1);
   if(img != NULL){
     ReInit(img);
@@ -85,7 +85,7 @@ void ImgRecon::ReInit(IplImage *img)
     int xy=corners1[0].x+corners1[0].y, maxxy=xy, minxy=xy, co2=0, co0=0;
     Center.y = corners1[0].y;
     Center.x = corners1[0].x;
-
+    
     int i = 0;
     for( i = 1; i < maxcorners; i++ )  
     {
@@ -125,7 +125,6 @@ void ImgRecon::ReInit(IplImage *img)
       corners1[3]=corners1[1];
       corners1[1]=cornertemp;
     }
-
 
 
     //释放不需要的内存
