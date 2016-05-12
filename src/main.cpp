@@ -85,7 +85,7 @@ void* Control_loop(void* param) {
   ////////////////////////////////
   ImgRecon img_recon(NULL);
   IplImage *imgsrc;
-  Mat imgMat;
+  Mat imgmat;
 
   system("rosservice call /ardrone/setcamchannel 1");
   ///////////////////////// PID control parameters
@@ -95,7 +95,7 @@ void* Control_loop(void* param) {
   double lasterrorx, lasterrory, lasterrorturn;
   double targetvx, targetvy, targetv;
   int targeth, targethland = 700;
-  double leftr = 0, forwardb = 0, upd = 0;
+  double leftr = 0, forwardb = 0, upd = 0, turnleftr = 0;
   double vk = 2.0;//0.001;
   static double kp = 4.0;//0.0001;
   static double kd = 150.0;
@@ -130,6 +130,7 @@ void* Control_loop(void* param) {
   cout << "Start!" << endl;
   ///////////////////////////////////////////////////////////
   ModeType cur_mode = STOP, next_mode = STOP;
+  int frame_count = 0, lostframe = 0;
   ///////////////////////////////////////////////////////////
   clock_t pid_stable_time;
   clock_t landing_time;
@@ -141,7 +142,6 @@ void* Control_loop(void* param) {
   while (ros::ok()) {
     usleep(1000);
     lostframe++;
-    if (c == 'x')  drone.land();
     if (lostframe > 100) drone.hover(); // if the video is not fluent
     if (lostframe > 3000) drone.land(); // if the video is not fluent
     //////////////////////////test/////////////////////////////////////////////////
@@ -379,10 +379,6 @@ void* Control_loop(void* param) {
       default:
         break;
       }
-      c = (char)cv::waitKey(1);
-      // ESC key pressed
-      if (c == 27 || c == 'q') { drone.land(); break; }
-      if (c > -1) cout << " key press: " << (int)c << endl;
     }
 
     if (cur_mode == cmdreader.GetMode() && cur_mode != MANUL) {
