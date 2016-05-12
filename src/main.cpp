@@ -48,7 +48,7 @@ using namespace std;
 
 #define Test 0
 #define MyCode 1
-#define MyPIDMode 0
+#define MyPIDMode 1
 
 static int mGrids = 5;
 static int nGrids = 6;
@@ -90,8 +90,15 @@ ofstream fout("/home/mozhi/Record/test.txt", ios::app);
 #include "ARDrone.h"
 
 void* Control_loop(void* param) {
+  ARDrone drone;
+  drone.setup();
+  CMDReciever cmdreader("/home/mozhi/Logs/cmd.txt", drone);
   IMURecorder imureader("/home/mozhi/Record/imu.txt");
   VideoRecorder videoreader("/home/mozhi/Record/video_ts.txt", "/home/mozhi/Record/video.avi");
+  ROSThread thread(imureader, videoreader, cmdreader);
+  thread.showVideo = true;
+  ros::Rate loop_rate(50);
+  ////////////////////////////////
   ImgRecon img_recon(NULL);
   ImgRGB img(640, 360);
   IplImage *imgsrc, *imgr, *imgg, *imgb, *squaretmp, *squaretmp1, *imgyellow, *imgnumber, *imgnumberwarp;
@@ -107,12 +114,6 @@ void* Control_loop(void* param) {
 
   system("rosservice call /ardrone/setcamchannel 1");
   ////////////////////////////////
-  ARDrone drone;
-  drone.setup();
-  CMDReciever cmdreader("/home/mozhi/Logs/cmd.txt", drone);
-  ROSThread thread(imureader, videoreader, cmdreader);
-  thread.showVideo = true;
-  ros::Rate loop_rate(50);
   int i, j;
   uchar * data, *datar, *datag, *datab;
   int pathJustLost = 0, pathLostCount = 0;
@@ -193,13 +194,17 @@ void* Control_loop(void* param) {
   sprintf(filename, "/home/mozhi/Logs/%02d_%02d_%02d_%02d.txt",
     a->tm_mday, a->tm_hour, a->tm_min, a->tm_sec);
 
-  ModeType cur_mode = STOP, next_mode = STOP;
   log.open(filename);
   if (!log) {
     cout << "cannot open file to log" << endl;
   }
-
   cout << "Start!" << endl;
+
+  ///////////////////////////////////////////////////////////
+  ModeType cur_mode = STOP, next_mode = STOP;
+  ///////////////////////////////////////////////////////////
+  clock_t pid_stable_time;
+  clock_t landing_time;
 #if Test
   //Get local time test
   char filename[50];
@@ -238,6 +243,10 @@ void* Control_loop(void* param) {
       switch (cur_mode) {
       case START:
         drone.takeOff();
+        leftr = 0;
+        forwardb = 0;
+        upd = 0;
+        turnleftr = 0;
         next_mode = TAKEOFF;
         break;
       case TAKEOFF:
@@ -289,12 +298,20 @@ void* Control_loop(void* param) {
             }
 
             if (upd == 0 && leftr == 0 && forwardb == 0) {
-              log << "PID Complete!";
+              if ((clock() - pid_stable_time) / CLOCKS_PER_SEC * 1000 
+                  > 1000) {
+
+                log << "TAKEOFF Complete! Ready to land!" << endl;
+                next_mode = LAND;
+              }
+              log << "PID Complete" << endl;
             }
             else {
               CLIP3(-0.1, leftr, 0.1);
               CLIP3(-0.1, forwardb, 0.1);
               CLIP3(-0.2, upd, 0.2);
+              turnleftr = 0;
+              pid_stable_time = clock();
               log << "e_x = " << errorx << "  e_y = " << errory << endl;
               log << " Height:" << setw(8) << thread.navdata.altd << "  v: "
                 << setw(8) << thread.navdata.vy << " " << setw(8)
@@ -331,17 +348,114 @@ void* Control_loop(void* param) {
             if (thread.navdata.altd < 1400) {
               upd = 0.002 * (1400 - thread.navdata.altd);
             }
-            if (thread.navdata.altd > 1450) {
+            else if (thread.navdata.altd > 1450) {
               upd = 0.002 * (1450 - thread.navdata.altd);
             }
+            else {
+              upd = 0;
+            }
+            if (abs(errorx) < 15 && abs(errory) < 15) {
+              leftr = 0;
+              forwardb = 0;
+              if (upd == 0) {
+
+                if ((clock() - pid_stable_time) / CLOCKS_PER_SEC * 1000
+                      > 1000) {
+
+                  log << "TAKEOFF Complete!";
+                  next_mode = LAND;
+                }
+                log << "PID Complete";
+              }
+            }
+            else {
+              CLIP3(-0.1, leftr, 0.1);
+              CLIP3(-0.1, forwardb, 0.1);
+              CLIP3(-0.2, upd, 0.2);
+              turnleftr = 0;
+              pid_stable_time = clock();
+              log << "y_left = " << leftr << "  x_forward = " << forwardb
+                << "  z_up = " << upd << endl;
+            }
+#endif
+          }
+        }
+        break;
+      case LAND: 
+        time(&timep);
+        a = localtime(&timep);
+        log << endl << a->tm_mday << " " << a->tm_hour << ":"
+          << a->tm_min << ":" << a->tm_sec << endl;
+
+        img_recon.ReInit(imgsrc);
+        if (img_recon.ContourExist()) {
+          cout << "conter found" << endl;
+          centerx = img_recon.GetCenterPoint().x;
+          centery = img_recon.GetCenterPoint().y;
+          log << "center founded: x = " << centerx
+            << "  y = " << centery << endl;
+
+#if MyPIDMode
+          CLIP3(10.0, centerx, 590.0);
+          CLIP3(10.0, centery, 350.0);
+          lasterrorx = errorx;
+          lasterrory = errory;
+          errorx = targetx - centerx;
+          errory = targety - centery;
+          // control vx
+          if (abs(errorx) < 5) {
+            leftr = 0;
+          }
+          else {
+            leftr = -0.0025 * errory - 0.0025 *(errory - lasterrory);
+          }
+          // control vy
+          if (abs(errory) < 5) {
+            forwardb = -0.0025 * errorx - 0.0025*(errorx - lasterrorx);
+          }
+          else {
+            forwardb = 0;
+          }
+          // control vz
+          if (thread.navdata.altd < 350) {
+            upd = 0.002 * (350 - thread.navdata.altd);
+          }
+          else if (thread.navdata.altd > 400) {
+            upd = 0.002 * (400 - thread.navdata.altd);
+          }
+          else {
+            upd = 0;
+          }
+
+          if (upd == 0 && leftr == 0 && forwardb == 0) {
+            if ((clock() - pid_stable_time) / CLOCKS_PER_SEC * 1000
+                > 1000) {
+
+              log << "Ready to land!" << endl;
+              drone.land();
+              landing_time = clock();
+              while (static_cast<double>(clock() - landing_time)
+                  / CLOCKS_PER_SEC * 1000 < 5000);
+
+              next_mode = START;
+            }
+            log << "PID Complete" << endl;
+          }
+          else {
             CLIP3(-0.1, leftr, 0.1);
             CLIP3(-0.1, forwardb, 0.1);
             CLIP3(-0.2, upd, 0.2);
+            turnleftr = 0;
+            pid_stable_time = clock();
+            log << "e_x = " << errorx << "  e_y = " << errory << endl;
+            log << " Height:" << setw(8) << thread.navdata.altd << "  v: "
+              << setw(8) << thread.navdata.vy << " " << setw(8)
+              << thread.navdata.vx << endl;//<<" "<< thread.navdata.vz;
             log << "y_left = " << leftr << "  x_forward = " << forwardb
               << "  z_up = " << upd << endl;
+          }
 
 #endif
-          }
         }
         break;
       default:
@@ -883,7 +997,9 @@ void* Control_loop(void* param) {
 
     }
     if (cmdreader.GetMode() == MANUL) {
-      if ((clock() - cmdreader.GetManualTime()) / CLOCKS_PER_SEC * 1000 > 1000) {
+      if (static_cast<double>(clock() - cmdreader.GetManualTime()) 
+          / CLOCKS_PER_SEC * 1000 > 1000) {
+
         drone.hover();
       }
     }
