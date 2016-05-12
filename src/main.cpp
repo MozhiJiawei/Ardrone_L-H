@@ -48,7 +48,7 @@ using namespace std;
 
 #define Test 0
 #define MyCode 1
-#define MyPIDMode 1
+#define MyPIDMode 0
 
 static int mGrids = 5;
 static int nGrids = 6;
@@ -206,16 +206,8 @@ void* Control_loop(void* param) {
   clock_t pid_stable_time;
   clock_t landing_time;
 #if Test
-  //Get local time test
-  char filename[50];
-  time_t timep;
-  struct tm *a;
-  time(&timep);
-  a = localtime(&timep);
-  sprintf(filename, "/home/mozhi/Logs/%02d_%02d_%02d_%02d.bmp",
-    a->tm_mday, a->tm_hour, a->tm_min, a->tm_sec);
-
-  cout << filename << endl;
+  drone.takeOff();
+  ros::spin();
 #endif
   cvNamedWindow("a", 1);
   while (ros::ok()) {
@@ -238,8 +230,7 @@ void* Control_loop(void* param) {
 
       videoreader.getImage(imgmat);
       *imgsrc = imgmat;
-      cvShowImage("a", imgsrc);
-
+          img_recon.ReInit(imgsrc);
       switch (cur_mode) {
       case START:
         drone.takeOff();
@@ -270,21 +261,21 @@ void* Control_loop(void* param) {
             CLIP3(10.0, centery, 350.0);
             lasterrorx = errorx;
             lasterrory = errory;
-            errorx = targetx - centerx;
-            errory = targety - centery;
+            errorx = centerx - targetx;
+            errory = centery - targety;
             // control vx
             if (abs(errorx) < 5) {
               leftr = 0;
             }
             else {
-              leftr = -0.0025 * errory - 0.0025 *(errory - lasterrory);
+              leftr = -0.0025 * errorx - 0.0025 *(errorx - lasterrorx);
             }
             // control vy
             if (abs(errory) < 5) {
-              forwardb = -0.0025 * errorx - 0.0025*(errorx - lasterrorx);
+              forwardb = 0;
             }
             else {
-              forwardb = 0;
+              forwardb = -0.0025 * errory - 0.0025*(errory - lasterrory);
             }
             // control vz
             if (thread.navdata.altd < 1400) {
@@ -1003,6 +994,8 @@ void* Control_loop(void* param) {
         drone.hover();
       }
     }
+    cvShowImage("a", imgsrc);
+    
 #endif
     switch (c) {
     case 'z':
