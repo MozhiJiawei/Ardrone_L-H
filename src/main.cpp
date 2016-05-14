@@ -41,8 +41,7 @@
 #include <keyboard/Key.h>
 using namespace std;
 
-#define Test 0
-#define MyPIDMode 0
+#define Test 1
 
 static int mGrids = 5;
 static int nGrids = 6;
@@ -88,6 +87,7 @@ void* Control_loop(void* param) {
   Mat imgmat;
 
   system("rosservice call /ardrone/setcamchannel 1");
+  system("rosservice call /ardrone/setrecord 1");
   ///////////////////////// PID control parameters
   double targetx, targety;
   double centerx, centery;
@@ -135,9 +135,24 @@ void* Control_loop(void* param) {
   clock_t pid_stable_time;
   clock_t landing_time;
 #if Test
+  double control_time;
   drone.takeOff();
+  cout << "take off" << endl;
+  while (thread.navdata.state == 6);
+  drone.move(0.0, 0.05, 0.0, 0);
+  cout << "move 0.05" << endl;
+  control_time = (double)ros::Time::now().toSec();
+  while ((double)ros::Time::now().toSec() < control_time + 0.5);
+  drone.move(0.0, 0.2, 0.0, 0);
+  cout << "move 0.2" << endl;
+  while ((double)ros::Time::now().toSec() < control_time + 1);
+  drone.move(0.00001, 0.0, 0.0, 0);
+  cout << "move 0" << endl;
+  while ((double)ros::Time::now().toSec() < control_time + 4);
+  drone.land();
   ros::spin();
 #endif
+  
   cvNamedWindow("a", 1);
   while (ros::ok()) {
     usleep(1000);
@@ -168,13 +183,13 @@ void* Control_loop(void* param) {
         next_mode = TAKEOFF;
         break;
       case TAKEOFF:
-        if (thread.navdata.altd > 400)
-        {
-          time(&timep);
-          a = localtime(&timep);
-          log << endl << a->tm_mday << " " << a->tm_hour << ":"
+        time(&timep);
+        a = localtime(&timep);
+        log << endl << a->tm_mday << " " << a->tm_hour << ":"
             << a->tm_min << ":" << a->tm_sec << endl;
 
+        if (thread.navdata.altd > 600)
+        {
           img_recon.ReInit(imgsrc);
           if (img_recon.ContourExist()) {
             cout << "conter found" << endl;
@@ -183,68 +198,12 @@ void* Control_loop(void* param) {
             log << "center founded: x = " << centerx
               << "  y = " << centery << endl;
 
-#if MyPIDMode
             CLIP3(10.0, centerx, 590.0);
             CLIP3(10.0, centery, 350.0);
             lasterrorx = errorx;
             lasterrory = errory;
             errorx = centerx - targetx;
             errory = centery - targety;
-            // control vx
-            if (abs(errorx) < 5) {
-              leftr = 0;
-            }
-            else {
-              leftr = -0.0025 * errorx - 0.0025 *(errorx - lasterrorx);
-            }
-            // control vy
-            if (abs(errory) < 5) {
-              forwardb = 0;
-            }
-            else {
-              forwardb = -0.0025 * errory - 0.0025*(errory - lasterrory);
-            }
-            // control vz
-            if (thread.navdata.altd < 1400) {
-              upd = 0.002 * (1400 - thread.navdata.altd);
-            }
-            else if (thread.navdata.altd > 1450) {
-              upd = 0.002 * (1450 - thread.navdata.altd);
-            }
-            else {
-              upd = 0;
-            }
-
-            if (upd == 0 && leftr == 0 && forwardb == 0) {
-              if ((clock() - pid_stable_time) / CLOCKS_PER_SEC * 1000 
-                  > 1000) {
-
-                log << "TAKEOFF Complete! Ready to land!" << endl;
-                next_mode = LAND;
-              }
-              log << "PID Complete" << endl;
-            }
-            else {
-              CLIP3(-0.1, leftr, 0.1);
-              CLIP3(-0.1, forwardb, 0.1);
-              CLIP3(-0.2, upd, 0.2);
-              turnleftr = 0;
-              pid_stable_time = clock();
-              log << "e_x = " << errorx << "  e_y = " << errory << endl;
-              log << " Height:" << setw(8) << thread.navdata.altd << "  v: "
-                << setw(8) << thread.navdata.vy << " " << setw(8)
-                << thread.navdata.vx << endl;//<<" "<< thread.navdata.vz;
-              log << "y_left = " << leftr << "  x_forward = " << forwardb
-                << "  z_up = " << upd << endl;
-            }
-#else
-            CLIP3(10.0, centerx, 590.0);
-            CLIP3(10.0, centery, 350.0);
-            lasterrorx = errorx;
-            lasterrory = errory;
-            errorx = centerx - targetx;
-            errory = centery - targety;
-            log << "e_x = " << errorx << "  e_y = " << errory << endl;
             targetvx = -vk * errory - vk*(errory - lasterrory);
             targetvy = -vk * errorx - vk*(errorx - lasterrorx);
             if (errory > 80 || errory < -80) {
@@ -255,10 +214,6 @@ void* Control_loop(void* param) {
             }
             CLIP3(-1500.0, targetvx, 1500.0);
             CLIP3(-1500.0, targetvy, 1500.0);
-            log << "t_vx = " << targetvx << "  t_vy = " << targetvy << endl;
-            log << " Height:" << setw(8) << thread.navdata.altd << "  v: "
-              << setw(8) << thread.navdata.vx << " " << setw(8)
-              << thread.navdata.vy << endl;//<<" "<< thread.navdata.vz;
 
             forwardb = pidVX.getOutput(targetvx - thread.navdata.vx, 0.5);
             leftr = pidVY.getOutput(targetvy - thread.navdata.vy, 0.5);
@@ -272,69 +227,76 @@ void* Control_loop(void* param) {
             else {
               upd = 0;
             }
+            CLIP3(-0.1, leftr, 0.1);
+            CLIP3(-0.1, forwardb, 0.1);
+            CLIP3(-0.2, upd, 0.2);
+            turnleftr = 0;
+
             if (abs(errorx) < 15 && abs(errory) < 15) {
-              leftr = 0;
-              forwardb = 0;
               if (upd == 0) {
 
                 if ((clock() - pid_stable_time) / CLOCKS_PER_SEC * 1000
-                      > 1000) {
+                      > 500) {
 
-                  log << "TAKEOFF Complete!";
+                  log << "TAKEOFF Complete! Start Landing" << endl;
                   next_mode = LAND;
                 }
-                log << "PID Complete";
+                log << "PID Complete" << endl;
               }
             }
             else {
-              CLIP3(-0.1, leftr, 0.1);
-              CLIP3(-0.1, forwardb, 0.1);
-              CLIP3(-0.2, upd, 0.2);
-              turnleftr = 0;
               pid_stable_time = clock();
-              log << "y_left = " << leftr << "  x_forward = " << forwardb
+              log << "e_x = " << errorx << "  e_y = " << errory << endl;
+              log << "t_vx = " << targetvx << "  t_vy = " << targetvy << endl;
+              log << " Height:" << setw(8) << thread.navdata.altd << "  vx: "
+                << setw(8) << thread.navdata.vx << " vy:" << setw(8)
+                << thread.navdata.vy << endl;//<<" "<< thread.navdata.vz;
+
+              log  << "  x_forward = " << forwardb << "y_left = " << leftr
                 << "  z_up = " << upd << endl;
+
             }
-#endif
+          }
+          else {
+            if (thread.navdata.altd < 1400) {
+              upd = 0.002 * (1400 - thread.navdata.altd);
+            }
+            else if (thread.navdata.altd > 1450) {
+              upd = 0.002 * (1450 - thread.navdata.altd);
+            }
+            else {
+              upd = 0;
+            }
+            CLIP3(-0.2, upd, 0.2);
+            log << "cannot find conter, keep rising" << endl;
           }
         }
         break;
       case LAND: 
-        time(&timep);
-        a = localtime(&timep);
-        log << endl << a->tm_mday << " " << a->tm_hour << ":"
-          << a->tm_min << ":" << a->tm_sec << endl;
-
         img_recon.ReInit(imgsrc);
         if (img_recon.ContourExist()) {
-          cout << "conter found" << endl;
           centerx = img_recon.GetCenterPoint().x;
           centery = img_recon.GetCenterPoint().y;
-          log << "center founded: x = " << centerx
-            << "  y = " << centery << endl;
 
-#if MyPIDMode
           CLIP3(10.0, centerx, 590.0);
           CLIP3(10.0, centery, 350.0);
           lasterrorx = errorx;
           lasterrory = errory;
-          errorx = targetx - centerx;
-          errory = targety - centery;
-          // control vx
-          if (abs(errorx) < 5) {
-            leftr = 0;
+          errorx = centerx - targetx;
+          errory = centery - targety;
+          targetvx = -vk * errory - vk*(errory - lasterrory);
+          targetvy = -vk * errorx - vk*(errorx - lasterrorx);
+          if (errory > 80 || errory < -80) {
+            targetvx += -vk * errory + 80 * vk;
           }
-          else {
-            leftr = -0.0025 * errory - 0.0025 *(errory - lasterrory);
+          if (errorx > 80 || errorx < -80) {
+            targetvy += -vk * errorx + 80 * vk;
           }
-          // control vy
-          if (abs(errory) < 5) {
-            forwardb = -0.0025 * errorx - 0.0025*(errorx - lasterrorx);
-          }
-          else {
-            forwardb = 0;
-          }
-          // control vz
+          CLIP3(-1500.0, targetvx, 1500.0);
+          CLIP3(-1500.0, targetvy, 1500.0);
+          forwardb = pidVX.getOutput(targetvx - thread.navdata.vx, 0.5);
+          leftr = pidVY.getOutput(targetvy - thread.navdata.vy, 0.5);
+          leftr /= 15000;        forwardb /= 15000;
           if (thread.navdata.altd < 350) {
             upd = 0.002 * (350 - thread.navdata.altd);
           }
@@ -344,36 +306,19 @@ void* Control_loop(void* param) {
           else {
             upd = 0;
           }
+          CLIP3(-0.1, leftr, 0.1);
+          CLIP3(-0.1, forwardb, 0.1);
+          CLIP3(-0.2, upd, 0.2);
+          turnleftr = 0;
+          if (upd == 0 && abs(errorx) < 15 && abs(errory) < 15) {
+            drone.hover();
+            drone.land();
+            landing_time = clock();
+            while (static_cast<double>(clock() - landing_time)
+              / CLOCKS_PER_SEC * 1000 > 6000);
 
-          if (upd == 0 && leftr == 0 && forwardb == 0) {
-            if ((clock() - pid_stable_time) / CLOCKS_PER_SEC * 1000
-                > 1000) {
-
-              log << "Ready to land!" << endl;
-              drone.land();
-              landing_time = clock();
-              while (static_cast<double>(clock() - landing_time)
-                  / CLOCKS_PER_SEC * 1000 < 5000);
-
-              next_mode = START;
-            }
-            log << "PID Complete" << endl;
+            next_mode = START;
           }
-          else {
-            CLIP3(-0.1, leftr, 0.1);
-            CLIP3(-0.1, forwardb, 0.1);
-            CLIP3(-0.2, upd, 0.2);
-            turnleftr = 0;
-            pid_stable_time = clock();
-            log << "e_x = " << errorx << "  e_y = " << errory << endl;
-            log << " Height:" << setw(8) << thread.navdata.altd << "  v: "
-              << setw(8) << thread.navdata.vy << " " << setw(8)
-              << thread.navdata.vx << endl;//<<" "<< thread.navdata.vz;
-            log << "y_left = " << leftr << "  x_forward = " << forwardb
-              << "  z_up = " << upd << endl;
-          }
-
-#endif
         }
         break;
       default:

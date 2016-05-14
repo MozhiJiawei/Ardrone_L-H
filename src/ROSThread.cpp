@@ -160,6 +160,11 @@ void ROSThread::vidCb(const sensor_msgs::ImageConstPtr img) {
   vidRec.addBack(tmVid, cv_ptr->image);
   // vidRec.newframe=true;
 }
+
+void ROSThread::odoCb(const ardrone_autonomy::Odometry::ConstPtr odoPtr) {
+  _odometry = *odoPtr;
+}
+
 void ROSThread::start() {
   pthread_attr_t attr;
   pthread_attr_init(&attr);
@@ -188,6 +193,9 @@ void ROSThread::loop() {
 
   cmdsub = node.subscribe(node.resolveName("keyboard/keydown"), 1,
     &ROSThread::cmdCb, this);
+
+  odosub = node.subscribe(node.resolveName("ardrone/odometry"), 1,
+    &ROSThread::odoCb, this);
 
   if (showVideo) {
     vidsub = node.subscribe(node.resolveName("ardrone/image_raw"), 1,
