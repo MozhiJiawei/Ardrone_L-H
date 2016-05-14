@@ -81,7 +81,7 @@ void ImgRecon::ReInit(IplImage *img)
   CvMemStorage *storage = cvCreateMemStorage(0), *storage1 = cvCreateMemStorage(0);
   CvSeq *contour = 0, *cont=0, *contemp=0, *maxcontemp=0;
   int contours = 0;
-  contours = cvFindContours( dst, storage, &contour, sizeof(CvContour), CV_RETR_LIST, CV_CHAIN_APPROX_SIMPLE);
+  contours = cvFindContours( dst, storage, &contour, sizeof(CvContour), CV_RETR_EXTERNAL, CV_CHAIN_APPROX_SIMPLE);//CV_RETR_LIST
   int face=0;
   //最大轮廓dst
   for (contemp = contour;contemp != 0; contemp = contemp->h_next)  
@@ -98,15 +98,16 @@ cvNamedWindow("src", 1);
   {
     ConExist = 1;		
     //多边形拟合dst1
-    cont = cvApproxPoly(maxcontemp, sizeof(CvContour), storage1, CV_POLY_APPROX_DP, cvContourPerimeter(maxcontemp)*0.1, 0);//倒数第二个参数为拟合后周长误差，最后参数若为0，只处理src_seq指向的轮廓。1则处理整个双向链表中的所有轮廓。
-    cvDrawContours (dst1, cont, cvScalar(255,0,0), cvScalar(255,0,0), 1, 4, 4);
+    cont = cvApproxPoly(maxcontemp, sizeof(CvContour), storage1, CV_POLY_APPROX_DP, cvContourPerimeter(maxcontemp)*0.065, 0);//倒数第二个参数为拟合后周长误差，最后参数若为0，只处理src_seq指向的轮廓。1则处理整个双向链表中的所有轮廓。
+    cvDrawContours (dst1, cont, cvScalar(255,0,0), cvScalar(255,0,0), CV_FILLED, 4, 8);//maxcontemp
+    cvErode( dst1, dst1, NULL, 1);
 //cout<<"多边形拟合角点数："<<cont->total<<endl;
 
     //找角点dst1	
     IplImage *eig_image = cvCreateImage(cvGetSize(img), IPL_DEPTH_32F, 1), *temp_image = cvCreateImage(cvGetSize(img), IPL_DEPTH_32F, 1); ;
     int maxcorners=4;
 
-    cvGoodFeaturesToTrack(dst1, eig_image, temp_image, corners1, &maxcorners, 0.01, 150);//最后一个参数为两个点距离最小值	
+    cvGoodFeaturesToTrack(dst1, eig_image, temp_image, corners1, &maxcorners, 0.01, 50);//最后一个参数为两个点距离最小值	
 
     //角点顺时针排序，对于图片倾斜太多没办法dst1
     CvPoint2D32f cornertemp;
