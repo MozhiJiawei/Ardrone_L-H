@@ -23,6 +23,7 @@ class ImgRecon
     CvPoint GetCenterPoint();//获得轮廓中心
     int GetContourArea();//获取轮廓面积
     bool ContourExist();//轮廓存在与否
+    float GetTopPointDiff();//>0,left higher;<0,right higher
 
   private:
     int NumResult;//判断所得数字
