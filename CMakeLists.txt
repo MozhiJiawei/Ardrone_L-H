@@ -8,6 +8,7 @@ project(ARDRONE_L-H)
 find_package(catkin REQUIRED COMPONENTS
 	cv_bridge
   roscpp
+  tf
   rospy
 )
 

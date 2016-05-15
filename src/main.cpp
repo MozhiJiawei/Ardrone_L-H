@@ -40,7 +40,7 @@
 #include <ros/ros.h>
 #include <keyboard/Key.h>
 #include <tf/transform_listener.h>
-#include <tf/transform_broacaster.h>
+#include <tf/transform_broadcaster.h>
 using namespace std;
 
 #define Test 1
@@ -171,7 +171,7 @@ void* Control_loop(void* param) {
       << " Qw = " << odom_to_link.getRotation().w() << endl;
 
     log << "form Odo subsrcriber: " 
-      << thread.odometry.header.stamp.sec << endl;
+      << thread._odometry.header.stamp.sec << endl;
 
     log << "Tx = " << thread._odometry.pose.pose.position.x
       << " Ty = " << thread._odometry.pose.pose.position.y
