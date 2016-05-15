@@ -43,11 +43,11 @@ void ImgRecon::ReInit(IplImage *img)
 
   IplImage 
     //*src,//灰度图，二值化，腐蚀
-    *dst,//复制src后找轮廓
-    *dst1;//画拟合曲线，找角点
+    *dst;//复制src后找轮廓
+    //*dst1;//画拟合曲线，找角点
   //src = cvCreateImage( cvGetSize(img), IPL_DEPTH_8U, 1);
   dst = cvCreateImage( cvGetSize(img), IPL_DEPTH_8U, 1);
-  dst1 = cvCreateImage( cvGetSize(img), IPL_DEPTH_8U, 1);
+  //dst1 = cvCreateImage( cvGetSize(img), IPL_DEPTH_8U, 1);
 
   //cvCvtColor( img, src, CV_BGR2GRAY );//转灰img->src
   //cvThreshold( src, src, 130, 255, CV_THRESH_BINARY);//二值化src
@@ -92,33 +92,29 @@ void ImgRecon::ReInit(IplImage *img)
       maxcontemp = contemp;
     }		
   }
-cvNamedWindow("dst1", 1);
+//cvNamedWindow("dst1", 1);
 cvNamedWindow("src", 1);
   if(ConArea > 10000)//如果面积太小说明没有找到纸片，可以不进行后续处理
   {
     ConExist = 1;		
     //多边形拟合dst1
     cont = cvApproxPoly(maxcontemp, sizeof(CvContour), storage1, CV_POLY_APPROX_DP, cvContourPerimeter(maxcontemp)*0.065, 0);//倒数第二个参数为拟合后周长误差，最后参数若为0，只处理src_seq指向的轮廓。1则处理整个双向链表中的所有轮廓。
-    cvDrawContours (dst1, cont, cvScalar(255,0,0), cvScalar(255,0,0), CV_FILLED, 4, 8);//maxcontemp
-    cvErode( dst1, dst1, NULL, 1);
-//cout<<"多边形拟合角点数："<<cont->total<<endl;
-
-    //找角点dst1	
-    IplImage *eig_image = cvCreateImage(cvGetSize(img), IPL_DEPTH_32F, 1), *temp_image = cvCreateImage(cvGetSize(img), IPL_DEPTH_32F, 1); ;
-    int maxcorners=4;
-
-    cvGoodFeaturesToTrack(dst1, eig_image, temp_image, corners1, &maxcorners, 0.01, 50);//最后一个参数为两个点距离最小值	
-
+    //cout << "approxreturn:" <<cont->total<<endl;
+    if(cont->total == 4){
+      for(i=0;i<4;++i){
+        corners1[i] = cvPointTo32f(*(CvPoint*)cvGetSeqElem( cont, i ));        
+        //cout<<"corner "<<i<<" "<<corners1[i].x<<" "<<corners1[i].y<<endl;
+      }
     //角点顺时针排序，对于图片倾斜太多没办法dst1
     CvPoint2D32f cornertemp;
     int xy=corners1[0].x+corners1[0].y, maxxy=xy, minxy=xy, co2=0, co0=0;
     Center.y = corners1[0].y;
     Center.x = corners1[0].x;
-cvCircle( img, cvPointFrom32f(corners1[0]), 7, cvScalar(255,255,255),3);  
+cvCircle( img, cvPointFrom32f(corners1[0]), 7, cvScalar(255,255,255),3);  //
     
-    for( i = 1; i < maxcorners; i++ )  
+    for( i = 1; i < 4; i++ )  
     {
-cvCircle( img, cvPointFrom32f(corners1[i]), 7, cvScalar(255,255,255),3);  
+cvCircle( img, cvPointFrom32f(corners1[i]), 7, cvScalar(255,255,255),3);  //
       Center.x += corners1[i].x;
       Center.y += corners1[i].y;
       xy=corners1[i].x+corners1[i].y;
@@ -155,19 +151,61 @@ cvCircle( img, cvPointFrom32f(corners1[i]), 7, cvScalar(255,255,255),3);
       corners1[3]=corners1[1];
       corners1[1]=cornertemp;
     }
+      
+    }
+    else{
+      int maxx=0,maxy=0,minx=640,miny=360,tx=0,ty=0,maxminxy[4]={-1,-1,-1,-1};//maxxloc=-1,maxyloc=-1,minxloc=-1,minyloc=-1;
+      for(i=0;i<cont->total;++i){
+        tx = (*(CvPoint*)cvGetSeqElem( cont, i )).x;
+        ty = (*(CvPoint*)cvGetSeqElem( cont, i )).y;
+        if(tx > maxx){
+          maxx = tx;
+          maxminxy[0] = i;
+        }
+        
+        if(tx <minx){
+          minx = tx;
+          maxminxy[1] = i;
+        }
 
+        if(ty > maxy){
+          maxy = ty;
+          maxminxy[2] = i;
+        }
+        
+        if(ty < miny){
+          miny = ty;
+          maxminxy[3] = i;
+        }
+      }
+      Center.y = (maxy+miny) / 2;
+      Center.x = (maxx+minx) / 2;
+      
+      }
+    }
+    /*
+    cvDrawContours (dst1, cont, cvScalar(255,0,0), cvScalar(255,0,0), CV_FILLED, 4, 8);//maxcontemp
+    cvErode( dst1, dst1, NULL, 1);
+//cout<<"多边形拟合角点数："<<cont->total<<endl;
 
+    //找角点dst1	
+    IplImage *eig_image = cvCreateImage(cvGetSize(img), IPL_DEPTH_32F, 1), *temp_image = cvCreateImage(cvGetSize(img), IPL_DEPTH_32F, 1); ;
+    int maxcorners=8;
+
+    cvGoodFeaturesToTrack(dst1, eig_image, temp_image, corners1, &maxcorners, 0.01, 50);//最后一个参数为两个点距离最小值	
 
     //释放不需要的内存
-    cvReleaseImage(&eig_image);
-    cvReleaseImage(&temp_image);
-  }
+    //cvReleaseImage(&eig_image);
+    //cvReleaseImage(&temp_image);
+*/    
+  
+  
   cvCircle( img, Center, 7, cvScalar(255,0,255),3);//在轮廓中心画圆
 cvShowImage("src",src);//show src, dst1
-cvShowImage("dst1",dst1);
+//cvShowImage("dst1",dst1);
   //释放不需要的内存
   //cvReleaseImage(&src);
-  cvReleaseImage(&dst1);
+  //cvReleaseImage(&dst1);
   cvReleaseImage(&dst);
   cvReleaseMemStorage (&storage);
   cvReleaseMemStorage (&storage1);
