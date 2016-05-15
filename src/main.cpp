@@ -138,6 +138,7 @@ void* Control_loop(void* param) {
   double takeoff_time;
   clock_t pid_stable_time;
   clock_t landing_time;
+  char c;
 #if Test
   double control_time;
   double current;
@@ -210,92 +211,86 @@ void* Control_loop(void* param) {
         log << endl << a->tm_mday << " " << a->tm_hour << ":"
             << a->tm_min << ":" << a->tm_sec << endl;
 
-        if (thread.navdata.altd > 600)
-        {
-          img_recon.ReInit(imgsrc);
-          if (img_recon.ContourExist()) {
-            cout << "conter found" << endl;
-            centerx = img_recon.GetCenterPoint().x;
-            centery = img_recon.GetCenterPoint().y;
-            log << "center founded: x = " << centerx
-              << "  y = " << centery << endl;
+        if (img_recon.ContourExist()) {
+          cout << "conter found" << endl;
+          centerx = img_recon.GetCenterPoint().x;
+          centery = img_recon.GetCenterPoint().y;
+          log << "center founded: x = " << centerx
+            << "  y = " << centery << endl;
 
-            CLIP3(10.0, centerx, 590.0);
-            CLIP3(10.0, centery, 350.0);
-            lasterrorx = errorx;
-            lasterrory = errory;
-            errorx = centerx - targetx;
-            errory = centery - targety;
-            targetvx = -vk * errory - vk*(errory - lasterrory);
-            targetvy = -vk * errorx - vk*(errorx - lasterrorx);
-            if (errory > 80 || errory < -80) {
-              targetvx += -vk * errory + 80 * vk;
-            }
-            if (errorx > 80 || errorx < -80) {
-              targetvy += -vk * errorx + 80 * vk;
-            }
-            CLIP3(-1500.0, targetvx, 1500.0);
-            CLIP3(-1500.0, targetvy, 1500.0);
+          CLIP3(10.0, centerx, 590.0);
+          CLIP3(10.0, centery, 350.0);
+          lasterrorx = errorx;
+          lasterrory = errory;
+          errorx = centerx - targetx;
+          errory = centery - targety;
+          targetvx = -vk * errory - vk*(errory - lasterrory);
+          targetvy = -vk * errorx - vk*(errorx - lasterrorx);
+          if (errory > 80 || errory < -80) {
+            targetvx += -vk * errory + 80 * vk;
+          }
+          if (errorx > 80 || errorx < -80) {
+            targetvy += -vk * errorx + 80 * vk;
+          }
+          CLIP3(-1500.0, targetvx, 1500.0);
+          CLIP3(-1500.0, targetvy, 1500.0);
 
-            forwardb = pidVX.getOutput(targetvx - thread.navdata.vx, 0.5);
-            leftr = pidVY.getOutput(targetvy - thread.navdata.vy, 0.5);
-            leftr /= 15000;        forwardb /= 15000;
-            if (thread.navdata.altd < 1400) {
-              upd = 0.002 * (1400 - thread.navdata.altd);
-            }
-            else if (thread.navdata.altd > 1450) {
-              upd = 0.002 * (1450 - thread.navdata.altd);
-            }
-            else {
-              upd = 0;
-            }
-            CLIP3(-0.1, leftr, 0.1);
-            CLIP3(-0.1, forwardb, 0.1);
-            CLIP3(-0.2, upd, 0.2);
-            turnleftr = 0;
+          forwardb = pidVX.getOutput(targetvx - thread.navdata.vx, 0.5);
+          leftr = pidVY.getOutput(targetvy - thread.navdata.vy, 0.5);
+          leftr /= 15000;        forwardb /= 15000;
+          if (thread.navdata.altd < 1400) {
+            upd = 0.002 * (1400 - thread.navdata.altd);
+          }
+          else if (thread.navdata.altd > 1450) {
+            upd = 0.002 * (1450 - thread.navdata.altd);
+          }
+          else {
+            upd = 0;
+          }
+          CLIP3(-0.1, leftr, 0.1);
+          CLIP3(-0.1, forwardb, 0.1);
+          CLIP3(-0.2, upd, 0.2);
+          turnleftr = 0;
 
-            if (abs(errorx) < 15 && abs(errory) < 15) {
-              if (upd == 0) {
+          if (abs(errorx) < 15 && abs(errory) < 15) {
+            if (upd == 0) {
+              if ((clock() - pid_stable_time) / CLOCKS_PER_SEC * 1000
+                  > 500) {
 
-                if ((clock() - pid_stable_time) / CLOCKS_PER_SEC * 1000
-                      > 500) {
-
-                  log << "TAKEOFF Complete! Start Landing" << endl;
-                  next_mode = LAND;
-                }
-                log << "PID Complete" << endl;
+                log << "TAKEOFF Complete! Start Landing" << endl;
+                next_mode = LAND;
               }
-            }
-            else {
-              pid_stable_time = clock();
-              log << "e_x = " << errorx << "  e_y = " << errory << endl;
-              log << "t_vx = " << targetvx << "  t_vy = " << targetvy << endl;
-              log << " Height:" << setw(8) << thread.navdata.altd << "  vx: "
-                << setw(8) << thread.navdata.vx << " vy:" << setw(8)
-                << thread.navdata.vy << endl;//<<" "<< thread.navdata.vz;
-
-              log  << "  x_forward = " << forwardb << "y_left = " << leftr
-                << "  z_up = " << upd << endl;
-
+              log << "PID Complete" << endl;
             }
           }
           else {
-            if (thread.navdata.altd < 1400) {
-              upd = 0.002 * (1400 - thread.navdata.altd);
-            }
-            else if (thread.navdata.altd > 1450) {
-              upd = 0.002 * (1450 - thread.navdata.altd);
-            }
-            else {
-              upd = 0;
-            }
-            CLIP3(-0.2, upd, 0.2);
-            log << "cannot find conter, keep rising" << endl;
+            pid_stable_time = clock();
+            log << "e_x = " << errorx << "  e_y = " << errory << endl;
+            log << "t_vx = " << targetvx << "  t_vy = " << targetvy << endl;
+            log << " Height:" << setw(8) << thread.navdata.altd << "  vx: "
+              << setw(8) << thread.navdata.vx << " vy:" << setw(8)
+              << thread.navdata.vy << endl;//<<" "<< thread.navdata.vz;
+
+            log  << "  x_forward = " << forwardb << "y_left = " << leftr
+              << "  z_up = " << upd << endl;
+
           }
+        }
+        else {
+          if (thread.navdata.altd < 1400) {
+            upd = 0.002 * (1400 - thread.navdata.altd);
+          }
+          else if (thread.navdata.altd > 1450) {
+            upd = 0.002 * (1450 - thread.navdata.altd);
+          }
+          else {
+            upd = 0;
+          }
+          CLIP3(-0.2, upd, 0.2);
+          log << "cannot find conter, keep rising" << endl;
         }
         break;
       case LAND: 
-        img_recon.ReInit(imgsrc);
         if (img_recon.ContourExist()) {
           centerx = img_recon.GetCenterPoint().x;
           centery = img_recon.GetCenterPoint().y;
@@ -362,7 +357,6 @@ void* Control_loop(void* param) {
     }
     cvShowImage("a", imgsrc);
     cv::waitKey(1);
-    
   }
   drone.land();
   cvReleaseImage(&imgsrc);
