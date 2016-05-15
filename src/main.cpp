@@ -39,9 +39,11 @@
 
 #include <ros/ros.h>
 #include <keyboard/Key.h>
+#include <tf/transform_listener.h>
+#include <tf/transform_broacaster.h>
 using namespace std;
 
-#define Test 0
+#define Test 1
 
 static int mGrids = 5;
 static int nGrids = 6;
@@ -140,6 +142,47 @@ void* Control_loop(void* param) {
   clock_t landing_time;
   char c;
 #if Test
+  tf::TransformListener listener;
+  while (ros::ok()) {
+    usleep(250000);
+    tf::StampedTransform odom_to_link;
+    try {
+      listener.lookupTransform("odom", "ardrone_base_link",
+        ros::Time(0), odom_to_link);
+
+    }
+    catch (tf::TransformException ex) {
+      ROS_ERROR("%s", ex.what());
+      ros::Duration(1.0).sleep();
+    }
+    time(&timep);
+    a = localtime(&timep);
+    log << endl << a->tm_mday << " " << a->tm_hour << ":"
+      << a->tm_min << ":" << a->tm_sec << endl;
+
+    log << "form lister: " << (double)odom_to_link.stamp_.toSec() << endl;
+    log << "Tx = " << odom_to_link.getOrigin().x()
+      << " Ty = " << odom_to_link.getOrigin().y()
+      << " Tz = " << odom_to_link.getOrigin().z() << endl;
+
+    log << "Qx = " << odom_to_link.getRotation().x()
+      << " Qy = " << odom_to_link.getRotation().y()
+      << " Qw = " << odom_to_link.getRotation().z()
+      << " Qw = " << odom_to_link.getRotation().w() << endl;
+
+    log << "form Odo subsrcriber: " 
+      << thread.odometry.header.stamp.sec << endl;
+
+    log << "Tx = " << thread._odometry.pose.pose.position.x
+      << " Ty = " << thread._odometry.pose.pose.position.y
+      << " Tz = " << thread._odometry.pose.pose.position.z << endl;
+
+    log << "Qx = " << thread._odometry.pose.pose.orientation.x
+      << " Qy = " << thread._odometry.pose.pose.orientation.y
+      << " Qw = " << thread._odometry.pose.pose.orientation.z
+      << " Qw = " << thread._odometry.pose.pose.orientation.w << endl;
+  }
+  ros::spin();
   double control_time;
   double current;
   drone.takeOff();
@@ -174,7 +217,6 @@ void* Control_loop(void* param) {
 
   }
   drone.land();
-  ros::spin();
 #endif
   
   cvNamedWindow("a", 1);
