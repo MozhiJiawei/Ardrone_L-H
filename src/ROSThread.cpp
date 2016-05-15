@@ -161,7 +161,7 @@ void ROSThread::vidCb(const sensor_msgs::ImageConstPtr img) {
   // vidRec.newframe=true;
 }
 
-void ROSThread::odoCb(const ardrone_autonomy::Odometry::ConstPtr odoPtr) {
+void ROSThread::odoCb(const nav_msgs::Odometry::ConstPtr odoPtr) {
   _odometry = *odoPtr;
 }
 

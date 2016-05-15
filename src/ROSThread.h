@@ -10,6 +10,7 @@
 #include "pthread.h"
 #include "ros/ros.h"
 #include "ardrone_autonomy/Navdata.h"
+#include "nav_msgs/Odometry.h"
 #include "sensor_msgs/Imu.h"
 #include "sensor_msgs/Image.h"
 #include <keyboard/Key.h>
@@ -67,7 +68,7 @@ class ROSThread {
     ///////////////////////////////////
 
     ////////////////////////////////odometry
-    ardrone_autonomy::Odometry _odometry;
+    nav_msgs::Odometry _odometry;
     /*
     # This represents an estimate of a position and velocity in free space.  
     # The pose in this message should be specified in the coordinate frame given by header.frame_id.
@@ -88,7 +89,7 @@ class ROSThread {
     void navdataCb(const ardrone_autonomy::Navdata::ConstPtr navPtr);
     void vidCb(const sensor_msgs::ImageConstPtr img);
     void cmdCb(const keyboard::Key::ConstPtr msg);
-    void odoCb(const ardrone_autonomy::Odometry::ConstPtr odoPtr);
+    void odoCb(const nav_msgs::Odometry::ConstPtr odoPtr);
 
     void setCallback(void(*CallbackROSThread)(void)) {
       cbROSThread = CallbackROSThread;

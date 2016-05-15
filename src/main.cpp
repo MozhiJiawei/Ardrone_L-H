@@ -41,7 +41,7 @@
 #include <keyboard/Key.h>
 using namespace std;
 
-#define Test 1
+#define Test 0
 
 static int mGrids = 5;
 static int nGrids = 6;
@@ -84,10 +84,13 @@ void* Control_loop(void* param) {
   ////////////////////////////////
   ImgRecon img_recon(NULL);
   IplImage *imgsrc;
+  CvSize imgSize = { 640,360 };
+  imgsrc = cvCreateImage(imgSize, IPL_DEPTH_8U, 3);
+
   Mat imgmat;
 
   system("rosservice call /ardrone/setcamchannel 1");
-  system("rosservice call /ardrone/setrecord 1");
+  //system("rosservice call /ardrone/setrecord 1");
   ///////////////////////// PID control parameters
   double targetx, targety;
   double centerx, centery;
@@ -132,23 +135,43 @@ void* Control_loop(void* param) {
   ModeType cur_mode = STOP, next_mode = STOP;
   int frame_count = 0, lostframe = 0;
   ///////////////////////////////////////////////////////////
+  double takeoff_time;
   clock_t pid_stable_time;
   clock_t landing_time;
 #if Test
   double control_time;
+  double current;
   drone.takeOff();
   cout << "take off" << endl;
-  while (thread.navdata.state == 6);
-  drone.move(0.0, 0.05, 0.0, 0);
-  cout << "move 0.05" << endl;
   control_time = (double)ros::Time::now().toSec();
-  while ((double)ros::Time::now().toSec() < control_time + 0.5);
-  drone.move(0.0, 0.2, 0.0, 0);
+  while ((double)ros::Time::now().toSec() < control_time + 6);
+  drone.move(0.0, 0.1, 0.0, 0.0);
+  cout << "move 0.05" << endl;
+  while ((double)ros::Time::now().toSec() < control_time + 8) {
+    usleep(250000);
+    log << "move 0.1   " << "  vx: "
+        << setw(8) << thread.navdata.vx << " vy:" << setw(8)
+        << thread.navdata.vy << endl;//<<" "<< thread.navdata.vz;
+
+  }
+  drone.move(0.0, 0.2, 0.0, 0.0);
   cout << "move 0.2" << endl;
-  while ((double)ros::Time::now().toSec() < control_time + 1);
-  drone.move(0.00001, 0.0, 0.0, 0);
+  while ((double)ros::Time::now().toSec() < control_time + 10) {
+    usleep(250000);
+    log << "move 0.2  " << "  vx: "
+        << setw(8) << thread.navdata.vx << " vy:" << setw(8)
+        << thread.navdata.vy << endl;//<<" "<< thread.navdata.vz;
+  
+  }
+  drone.move(0.0, 0.1, 0.0, 0.0);
   cout << "move 0" << endl;
-  while ((double)ros::Time::now().toSec() < control_time + 4);
+  while ((double)ros::Time::now().toSec() < control_time + 12) {
+    usleep(250000);
+    log << "move 0.1   " << "  vx: "
+        << setw(8) << thread.navdata.vx << " vy:" << setw(8)
+        << thread.navdata.vy << endl;//<<" "<< thread.navdata.vz;
+
+  }
   drone.land();
   ros::spin();
 #endif
@@ -172,14 +195,13 @@ void* Control_loop(void* param) {
 
       videoreader.getImage(imgmat);
       *imgsrc = imgmat;
-          img_recon.ReInit(imgsrc);
+      img_recon.ReInit(imgsrc);
       switch (cur_mode) {
       case START:
+        drone.hover();
         drone.takeOff();
-        leftr = 0;
-        forwardb = 0;
-        upd = 0;
-        turnleftr = 0;
+        takeoff_time = (double)ros::Time::now().toSec();
+        while((double)ros::Time::now().toSec() < takeoff_time + 4);
         next_mode = TAKEOFF;
         break;
       case TAKEOFF:
@@ -339,6 +361,7 @@ void* Control_loop(void* param) {
       }
     }
     cvShowImage("a", imgsrc);
+    cv::waitKey(1);
     
   }
   drone.land();
