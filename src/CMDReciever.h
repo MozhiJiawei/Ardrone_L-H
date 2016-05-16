@@ -48,7 +48,7 @@ private:
   clock_t _manul_time;
   pthread_mutex_t _mode_mutex;
   pthread_mutex_t _time_mutex;
-  char* _filePath;
+  const char* _filePath;
   ofstream log;
 
   void SetManualTime();
