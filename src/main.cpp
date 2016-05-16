@@ -176,7 +176,7 @@ void* Control_loop(void* param) {
 
     log << "Qx = " << odom_to_link.getRotation().x()
       << " Qy = " << odom_to_link.getRotation().y()
-      << " Qw = " << odom_to_link.getRotation().z()
+      << " Qz = " << odom_to_link.getRotation().z()
       << " Qw = " << odom_to_link.getRotation().w() << endl;
 
     log << "form Odo subsrcriber: " 
@@ -188,7 +188,7 @@ void* Control_loop(void* param) {
 
     log << "Qx = " << thread._odometry.pose.pose.orientation.x
       << " Qy = " << thread._odometry.pose.pose.orientation.y
-      << " Qw = " << thread._odometry.pose.pose.orientation.z
+      << " Qz = " << thread._odometry.pose.pose.orientation.z
       << " Qw = " << thread._odometry.pose.pose.orientation.w << endl;
 
     log << "move 0.1   " << "  vx: "
@@ -222,7 +222,7 @@ void* Control_loop(void* param) {
 
     log << "Qx = " << odom_to_link.getRotation().x()
       << " Qy = " << odom_to_link.getRotation().y()
-      << " Qw = " << odom_to_link.getRotation().z()
+      << " Qz = " << odom_to_link.getRotation().z()
       << " Qw = " << odom_to_link.getRotation().w() << endl;
 
     log << "form Odo subsrcriber: " 
@@ -234,7 +234,7 @@ void* Control_loop(void* param) {
 
     log << "Qx = " << thread._odometry.pose.pose.orientation.x
       << " Qy = " << thread._odometry.pose.pose.orientation.y
-      << " Qw = " << thread._odometry.pose.pose.orientation.z
+      << " Qz = " << thread._odometry.pose.pose.orientation.z
       << " Qw = " << thread._odometry.pose.pose.orientation.w << endl;
 
     log << "move 0.2  " << "  vx: "
@@ -268,7 +268,7 @@ void* Control_loop(void* param) {
 
     log << "Qx = " << odom_to_link.getRotation().x()
       << " Qy = " << odom_to_link.getRotation().y()
-      << " Qw = " << odom_to_link.getRotation().z()
+      << " Qz = " << odom_to_link.getRotation().z()
       << " Qw = " << odom_to_link.getRotation().w() << endl;
 
     log << "form Odo subsrcriber: " 
@@ -280,7 +280,7 @@ void* Control_loop(void* param) {
 
     log << "Qx = " << thread._odometry.pose.pose.orientation.x
       << " Qy = " << thread._odometry.pose.pose.orientation.y
-      << " Qw = " << thread._odometry.pose.pose.orientation.z
+      << " Qz = " << thread._odometry.pose.pose.orientation.z
       << " Qw = " << thread._odometry.pose.pose.orientation.w << endl;
 
     log << "move 0.1   " << "  vx: "
