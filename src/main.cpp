@@ -140,10 +140,19 @@ void* Control_loop(void* param) {
   double takeoff_time;
   clock_t pid_stable_time;
   clock_t landing_time;
-  char c;
+
+  bool land_centered = false;
 #if Test
   tf::TransformListener listener;
-  while (ros::ok()) {
+  double control_time;
+  double current;
+  drone.takeOff();
+  cout << "take off" << endl;
+  control_time = (double)ros::Time::now().toSec();
+  while ((double)ros::Time::now().toSec() < control_time + 6);
+  drone.move(0.0, 0.1, 0.0, 0.0);
+  cout << "move 0.05" << endl;
+  while ((double)ros::Time::now().toSec() < control_time + 8) {
     usleep(250000);
     tf::StampedTransform odom_to_link;
     try {
@@ -181,18 +190,7 @@ void* Control_loop(void* param) {
       << " Qy = " << thread._odometry.pose.pose.orientation.y
       << " Qw = " << thread._odometry.pose.pose.orientation.z
       << " Qw = " << thread._odometry.pose.pose.orientation.w << endl;
-  }
-  ros::spin();
-  double control_time;
-  double current;
-  drone.takeOff();
-  cout << "take off" << endl;
-  control_time = (double)ros::Time::now().toSec();
-  while ((double)ros::Time::now().toSec() < control_time + 6);
-  drone.move(0.0, 0.1, 0.0, 0.0);
-  cout << "move 0.05" << endl;
-  while ((double)ros::Time::now().toSec() < control_time + 8) {
-    usleep(250000);
+
     log << "move 0.1   " << "  vx: "
         << setw(8) << thread.navdata.vx << " vy:" << setw(8)
         << thread.navdata.vy << endl;//<<" "<< thread.navdata.vz;
@@ -202,6 +200,43 @@ void* Control_loop(void* param) {
   cout << "move 0.2" << endl;
   while ((double)ros::Time::now().toSec() < control_time + 10) {
     usleep(250000);
+    tf::StampedTransform odom_to_link;
+    try {
+      listener.lookupTransform("odom", "ardrone_base_link",
+        ros::Time(0), odom_to_link);
+
+    }
+    catch (tf::TransformException ex) {
+      ROS_ERROR("%s", ex.what());
+      ros::Duration(1.0).sleep();
+    }
+    time(&timep);
+    a = localtime(&timep);
+    log << endl << a->tm_mday << " " << a->tm_hour << ":"
+      << a->tm_min << ":" << a->tm_sec << endl;
+
+    log << "form lister: " << (double)odom_to_link.stamp_.toSec() << endl;
+    log << "Tx = " << odom_to_link.getOrigin().x()
+      << " Ty = " << odom_to_link.getOrigin().y()
+      << " Tz = " << odom_to_link.getOrigin().z() << endl;
+
+    log << "Qx = " << odom_to_link.getRotation().x()
+      << " Qy = " << odom_to_link.getRotation().y()
+      << " Qw = " << odom_to_link.getRotation().z()
+      << " Qw = " << odom_to_link.getRotation().w() << endl;
+
+    log << "form Odo subsrcriber: " 
+      << thread._odometry.header.stamp.sec << endl;
+
+    log << "Tx = " << thread._odometry.pose.pose.position.x
+      << " Ty = " << thread._odometry.pose.pose.position.y
+      << " Tz = " << thread._odometry.pose.pose.position.z << endl;
+
+    log << "Qx = " << thread._odometry.pose.pose.orientation.x
+      << " Qy = " << thread._odometry.pose.pose.orientation.y
+      << " Qw = " << thread._odometry.pose.pose.orientation.z
+      << " Qw = " << thread._odometry.pose.pose.orientation.w << endl;
+
     log << "move 0.2  " << "  vx: "
         << setw(8) << thread.navdata.vx << " vy:" << setw(8)
         << thread.navdata.vy << endl;//<<" "<< thread.navdata.vz;
@@ -211,20 +246,55 @@ void* Control_loop(void* param) {
   cout << "move 0" << endl;
   while ((double)ros::Time::now().toSec() < control_time + 12) {
     usleep(250000);
+    tf::StampedTransform odom_to_link;
+    try {
+      listener.lookupTransform("odom", "ardrone_base_link",
+        ros::Time(0), odom_to_link);
+
+    }
+    catch (tf::TransformException ex) {
+      ROS_ERROR("%s", ex.what());
+      ros::Duration(1.0).sleep();
+    }
+    time(&timep);
+    a = localtime(&timep);
+    log << endl << a->tm_mday << " " << a->tm_hour << ":"
+      << a->tm_min << ":" << a->tm_sec << endl;
+
+    log << "form lister: " << (double)odom_to_link.stamp_.toSec() << endl;
+    log << "Tx = " << odom_to_link.getOrigin().x()
+      << " Ty = " << odom_to_link.getOrigin().y()
+      << " Tz = " << odom_to_link.getOrigin().z() << endl;
+
+    log << "Qx = " << odom_to_link.getRotation().x()
+      << " Qy = " << odom_to_link.getRotation().y()
+      << " Qw = " << odom_to_link.getRotation().z()
+      << " Qw = " << odom_to_link.getRotation().w() << endl;
+
+    log << "form Odo subsrcriber: " 
+      << thread._odometry.header.stamp.sec << endl;
+
+    log << "Tx = " << thread._odometry.pose.pose.position.x
+      << " Ty = " << thread._odometry.pose.pose.position.y
+      << " Tz = " << thread._odometry.pose.pose.position.z << endl;
+
+    log << "Qx = " << thread._odometry.pose.pose.orientation.x
+      << " Qy = " << thread._odometry.pose.pose.orientation.y
+      << " Qw = " << thread._odometry.pose.pose.orientation.z
+      << " Qw = " << thread._odometry.pose.pose.orientation.w << endl;
+
     log << "move 0.1   " << "  vx: "
         << setw(8) << thread.navdata.vx << " vy:" << setw(8)
         << thread.navdata.vy << endl;//<<" "<< thread.navdata.vz;
 
   }
   drone.land();
+  ros::spin();
 #endif
   
   cvNamedWindow("a", 1);
   while (ros::ok()) {
     usleep(1000);
-    lostframe++;
-    if (lostframe > 100) drone.hover(); // if the video is not fluent
-    if (lostframe > 3000) drone.land(); // if the video is not fluent
     //////////////////////////test/////////////////////////////////////////////////
     if (videoreader.newframe) {
       cur_mode = cmdreader.GetMode();
@@ -282,25 +352,32 @@ void* Control_loop(void* param) {
           leftr /= 15000;        forwardb /= 15000;
           if (thread.navdata.altd < 1400) {
             upd = 0.002 * (1400 - thread.navdata.altd);
+            turnleftr = 0;
           }
           else if (thread.navdata.altd > 1450) {
             upd = 0.002 * (1450 - thread.navdata.altd);
+            turnleftr = 0;
           }
           else {
             upd = 0;
+            errorturn = -img_recon.GetTopPointDiff();
+            log << "angle diff = " << errorturn << endl; 
+            turnleftr = errorturn / 200;
           }
           CLIP3(-0.1, leftr, 0.1);
           CLIP3(-0.1, forwardb, 0.1);
           CLIP3(-0.2, upd, 0.2);
-          turnleftr = 0;
+          CLIP3(-0.1, turnleftr, 0.1);
 
-          if (abs(errorx) < 15 && abs(errory) < 15) {
+          if (abs(errorx) < 30 && abs(errory) < 30 && abs(errorturn) < 10) {
             if (upd == 0) {
               if ((clock() - pid_stable_time) / CLOCKS_PER_SEC * 1000
                   > 500) {
 
                 log << "TAKEOFF Complete! Start Landing" << endl;
                 next_mode = LAND;
+                land_centered = false;
+                continue;
               }
               log << "PID Complete" << endl;
             }
@@ -309,12 +386,12 @@ void* Control_loop(void* param) {
             pid_stable_time = clock();
             log << "e_x = " << errorx << "  e_y = " << errory << endl;
             log << "t_vx = " << targetvx << "  t_vy = " << targetvy << endl;
-            log << " Height:" << setw(8) << thread.navdata.altd << "  vx: "
-              << setw(8) << thread.navdata.vx << " vy:" << setw(8)
+            log << " Height:" << setw(8) << thread.navdata.altd << "vx: "
+              << setw(8) << thread.navdata.vx << "  vy:" << setw(8)
               << thread.navdata.vy << endl;//<<" "<< thread.navdata.vz;
 
             log  << "  x_forward = " << forwardb << "y_left = " << leftr
-              << "  z_up = " << upd << endl;
+              << "  z_up = " << upd << "  turn = " << turnleftr << endl;
 
           }
         }
@@ -333,50 +410,66 @@ void* Control_loop(void* param) {
         }
         break;
       case LAND: 
-        if (img_recon.ContourExist()) {
-          centerx = img_recon.GetCenterPoint().x;
-          centery = img_recon.GetCenterPoint().y;
-
-          CLIP3(10.0, centerx, 590.0);
-          CLIP3(10.0, centery, 350.0);
-          lasterrorx = errorx;
-          lasterrory = errory;
-          errorx = centerx - targetx;
-          errory = centery - targety;
-          targetvx = -vk * errory - vk*(errory - lasterrory);
-          targetvy = -vk * errorx - vk*(errorx - lasterrorx);
-          if (errory > 80 || errory < -80) {
-            targetvx += -vk * errory + 80 * vk;
+        if(land_centered) {
+          if (thread.navdata.altd > 600) {
+            upd = 0.002 * (600 - thread.navdata.altd);
           }
-          if (errorx > 80 || errorx < -80) {
-            targetvy += -vk * errorx + 80 * vk;
-          }
-          CLIP3(-1500.0, targetvx, 1500.0);
-          CLIP3(-1500.0, targetvy, 1500.0);
-          forwardb = pidVX.getOutput(targetvx - thread.navdata.vx, 0.5);
-          leftr = pidVY.getOutput(targetvy - thread.navdata.vy, 0.5);
-          leftr /= 15000;        forwardb /= 15000;
-          if (thread.navdata.altd < 350) {
-            upd = 0.002 * (350 - thread.navdata.altd);
-          }
-          else if (thread.navdata.altd > 400) {
-            upd = 0.002 * (400 - thread.navdata.altd);
+          else if (thread.navdata.altd < 550) {
+            upd = 0.002 * (550 - thread.navdata.altd);
           }
           else {
-            upd = 0;
-          }
-          CLIP3(-0.1, leftr, 0.1);
-          CLIP3(-0.1, forwardb, 0.1);
-          CLIP3(-0.2, upd, 0.2);
-          turnleftr = 0;
-          if (upd == 0 && abs(errorx) < 15 && abs(errory) < 15) {
             drone.hover();
             drone.land();
-            landing_time = clock();
-            while (static_cast<double>(clock() - landing_time)
-              / CLOCKS_PER_SEC * 1000 > 6000);
-
+            landing_time = (double)ros::Time::now().toSec();
+            while((double)ros::Time::now().toSec() < landing_time + 10);
             next_mode = START;
+            continue;
+          }
+          leftr = 0;
+          forwardb = 0;
+          CLIP3(-0.2, upd, 0.2);
+          turnleftr = 0;
+        }
+        else {
+          if (img_recon.ContourExist()) {
+            centerx = img_recon.GetCenterPoint().x;
+            centery = img_recon.GetCenterPoint().y;
+
+            CLIP3(10.0, centerx, 590.0);
+            CLIP3(10.0, centery, 350.0);
+            lasterrorx = errorx;
+            lasterrory = errory;
+            errorx = centerx - targetx;
+            errory = centery - targety;
+            targetvx = -vk * errory - vk*(errory - lasterrory);
+            targetvy = -vk * errorx - vk*(errorx - lasterrorx);
+            if (errory > 80 || errory < -80) {
+              targetvx += -vk * errory + 80 * vk;
+            }
+            if (errorx > 80 || errorx < -80) {
+              targetvy += -vk * errorx + 80 * vk;
+            }
+            CLIP3(-1500.0, targetvx, 1500.0);
+            CLIP3(-1500.0, targetvy, 1500.0);
+            forwardb = pidVX.getOutput(targetvx - thread.navdata.vx, 0.5);
+            leftr = pidVY.getOutput(targetvy - thread.navdata.vy, 0.5);
+            leftr /= 15000;        forwardb /= 15000;
+
+            CLIP3(-0.1, leftr, 0.1);
+            CLIP3(-0.1, forwardb, 0.1);
+            upd = 0;
+            turnleftr = 0;
+            if ( abs(errorx) < 30 && abs(errory) < 30) {
+              leftr = 0;
+              upd = 0;
+              drone.hover();
+              usleep(500000);
+              drone.land();
+              landing_time = (double)ros::Time::now().toSec();
+              while((double)ros::Time::now().toSec() < landing_time + 10);
+              next_mode = START;
+              continue;
+            }
           }
         }
         break;
@@ -384,7 +477,16 @@ void* Control_loop(void* param) {
         break;
       }
     }
-
+    lostframe++;
+    if (lostframe > 100) {
+      drone.hover(); // if the video is not fluent
+      continue;
+    }
+    if (lostframe > 3000) 
+    {
+      drone.land(); // if the video is not fluent
+      continue;
+    }
     if (cur_mode == cmdreader.GetMode() && cur_mode != MANUL) {
       cmdreader.RunNextMode(next_mode, leftr, forwardb, upd,
         turnleftr);
@@ -398,6 +500,7 @@ void* Control_loop(void* param) {
       }
     }
     cvShowImage("a", imgsrc);
+    cout << img_recon.GetNumber() << endl;
     cv::waitKey(1);
   }
   drone.land();

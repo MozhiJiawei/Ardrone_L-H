@@ -38,7 +38,7 @@ ModeType CMDReciever::GetMode() {
   pthread_mutex_lock(&_mode_mutex);
   ModeType cur_mode = _mode;
   pthread_mutex_unlock(&_mode_mutex);
-  switch (_mode) {
+  /*switch (_mode) {
   case TAKEOFF:
     cout << "TAKEOFF" << endl;
     break;
@@ -50,8 +50,7 @@ ModeType CMDReciever::GetMode() {
     break;
   default:
     break;
-  }
-
+  }*/
   return cur_mode;
 }
 
