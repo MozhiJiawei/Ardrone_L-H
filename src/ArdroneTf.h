@@ -36,10 +36,11 @@ private:
   tf::TransformListener _listener;
   tf::TransformBroadcaster _broadcaster;
 
-  char* _file_path;
+  const char* _file_path;
   int _cur_number;
 
   tf::StampedTransform get_transform(const char* frame1, const char* frame2);
 };
 
 #endif // !ARDRONETF_H_
+

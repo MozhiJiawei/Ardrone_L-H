@@ -20,6 +20,8 @@ ArdroneTf::ArdroneTf(const char* file_name) : _file_path(file_name) {
   _num_distance[8] = _distance(0, 0);
 }
 
+ArdroneTf::~ArdroneTf() {}
+
 tf::StampedTransform ArdroneTf::get_transform(const char* frame1, const char* frame2) {
   tf::StampedTransform trans;
   try {
