@@ -9,15 +9,15 @@
 
 ArdroneTf::ArdroneTf(const char* file_name) : _file_path(file_name) {
   _cur_number = 0;
-  _num_distance[0] = _distance(0, 0);
-  _num_distance[1] = _distance(0, 0);
-  _num_distance[2] = _distance(0, 0);
-  _num_distance[3] = _distance(0, 0);
-  _num_distance[4] = _distance(0, 0);
-  _num_distance[5] = _distance(0, 0);
-  _num_distance[6] = _distance(0, 0);
-  _num_distance[7] = _distance(0, 0);
-  _num_distance[8] = _distance(0, 0);
+  _num_distance.push_back(_distance(0, 0));
+  _num_distance.push_back(_distance(0, 0));
+  _num_distance.push_back(_distance(0, 0));
+  _num_distance.push_back(_distance(0, 0));
+  _num_distance.push_back(_distance(0, 0));
+  _num_distance.push_back(_distance(0, 0));
+  _num_distance.push_back(_distance(0, 0));
+  _num_distance.push_back(_distance(0, 0));
+  _num_distance.push_back(_distance(0, 0));
 }
 
 ArdroneTf::~ArdroneTf() {}
@@ -49,12 +49,13 @@ void ArdroneTf::SetRefPose(int number) {
 }
 
 double ArdroneTf::YawDiff() {
-  double yaw, yaw_ref, yaw_diff
+  double yaw, yaw_ref, yaw_diff;
   double pitch, roll;
+  tf::Matrix3x3 mat(_ground_quaternion);
   this->get_transform("odom", "ardrone_base_link").getBasis().getEulerYPR(
       yaw, pitch, roll);
 
-  _ground_quaternion.getBasis().getEulerYPR(yaw_ref, pitch, roll);
+  mat.getEulerYPR(yaw_ref, pitch, roll);
   yaw_diff = yaw - yaw_ref;
   if (yaw_diff < -PI) {
     yaw_diff += 2 * PI;

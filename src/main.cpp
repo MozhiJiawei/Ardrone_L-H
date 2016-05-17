@@ -45,7 +45,7 @@
 using namespace std;
 
 #define Test 0
-#define Test_tf_yaw 1
+#define Test_tf_yaw 0
 
 static int mGrids = 5;
 static int nGrids = 6;
@@ -79,6 +79,7 @@ void* Control_loop(void* param) {
   ARDrone drone;
   drone.setup();
   ArdroneTf drone_tf("/home/mozhi/Logs/tf.txt");
+  cout << "Yes" << endl;
   CMDReciever cmdreader("/home/mozhi/Logs/cmd.txt", drone);
   IMURecorder imureader("/home/mozhi/Record/imu.txt");
   VideoRecorder videoreader("/home/mozhi/Record/video_ts.txt", "/home/mozhi/Record/video.avi");
@@ -94,6 +95,7 @@ void* Control_loop(void* param) {
   Mat imgmat;
 
   system("rosservice call /ardrone/setcamchannel 1");
+  system("rosservice call /ardrone/flattrim");
   //system("rosservice call /ardrone/setrecord 1");
   ///////////////////////// PID control parameters
   double targetx, targety;
@@ -146,9 +148,11 @@ void* Control_loop(void* param) {
   bool land_centered = false;
 
 #if Test_tf_yaw
+  drone_tf.SetRefQuaternion();
   while (ros::ok()) {
     usleep(250000);
-    log << "yaw = " << drone_tf.YawDiff() << endl;
+    cout << "yaw_diff = " << drone_tf.YawDiff() << endl;
+    log << "yaw_diff = " << drone_tf.YawDiff() << endl;
   }
 #endif
 #if Test
@@ -304,6 +308,8 @@ void* Control_loop(void* param) {
   cvNamedWindow("a", 1);
   while (ros::ok()) {
     usleep(1000);
+    cout << "yaw_diff = " << drone_tf.YawDiff() << endl;
+    log << "yaw_diff = " << drone_tf.YawDiff() << endl;
     //////////////////////////test/////////////////////////////////////////////////
     if (videoreader.newframe) {
       cur_mode = cmdreader.GetMode();
