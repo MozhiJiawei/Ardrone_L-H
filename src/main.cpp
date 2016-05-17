@@ -436,11 +436,11 @@ void* Control_loop(void* param) {
       case FLYING:
         lasterrorx = errorx;
         lasterrory = errory;
-        errorx = drone_tf.XDiff() * 300;
-        errory = drone_tf.YDiff() * 300;
+        errorx = drone_tf.XDiff();
+        errory = drone_tf.YDiff();
         //vk to be set.
-        targetvx = -vk * (2 * errorx - lasterrorx);
-        targetvy = -vk * (2 * errory - lasterrory);
+        targetvx = -vk * (2 * errorx - lasterrorx) * 300;
+        targetvy = -vk * (2 * errory - lasterrory) * 300;
         if (errorx > 80 || errorx < -80) {
           targetvx += -vk * errorx + 80 * vk;
         }
@@ -466,12 +466,26 @@ void* Control_loop(void* param) {
           // conterExist? center is in the right direction?
           // go there
           if (abs(errorx) < 0.05 && abs(errory) < 0.05) {
-          // conterExist?
-          // go there
-          // not exist?
-          // rising.
+            // conterExist?
+            // go there
+            // not exist?
+            // rising.
+            log << "Flying! Arrived" << endl;
+            if (img_recon.ContourExist()) {
+              log << "Counter found, ready to land" << endl;
+              next_mode = LAND;
+              errorx = 0;
+              errory = 0;
+            }
           }
+        }
+        else {
+          log << "Flying" << endl;
+          log << "errorx = " << errorx << "errory = " << errory
+              << "errorturn = " << errorturn << endl;
           
+          log << "  x_forward = " << forwardb << "y_left = " << leftr
+              << "  z_up = " << upd << "  turn = " << turnleftr << endl;
         }
         break;
       case LAND: 
@@ -504,8 +518,6 @@ void* Control_loop(void* param) {
           upd = 0;
           turnleftr = 0;
           if (abs(errorx) < 30 && abs(errory) < 30) {
-            leftr = 0;
-            upd = 0;
             drone.hover();
             usleep(500000);
             drone.land();
@@ -513,7 +525,6 @@ void* Control_loop(void* param) {
             landing_time = (double)ros::Time::now().toSec();
             while ((double)ros::Time::now().toSec() < landing_time + 10);
             next_mode = START;
-            continue;
           }
           else {
             log << "LANDING! PID to center" << endl;

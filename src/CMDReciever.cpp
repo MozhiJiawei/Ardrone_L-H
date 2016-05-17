@@ -63,9 +63,12 @@ void CMDReciever::SetMode(ModeType mode) {
 void CMDReciever::RunNextMode(ModeType mode, double y_left, double x_forward,
   double z_up, double angle_turn) {
 
-  pthread_mutex_lock(&_mode_mutex);
-  _mode = mode;
-  pthread_mutex_unlock(&_mode_mutex);
+  if (_mode != mode) {
+    pthread_mutex_lock(&_mode_mutex);
+    _mode = mode;
+    pthread_mutex_unlock(&_mode_mutex);
+    return;
+  }
 
   switch (mode) {
   case TAKEOFF:
