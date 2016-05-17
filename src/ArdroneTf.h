@@ -20,11 +20,12 @@ public:
   ArdroneTf(const char* file_name);
   virtual ~ArdroneTf();
 
-  void SetRefPose(int number);
+  void SetRefPose();
   void SetRefQuaternion();
   double YawDiff();
   double XDiff();
   double YDiff();
+  int get_cur_number();
 
 private:
   struct _distance{

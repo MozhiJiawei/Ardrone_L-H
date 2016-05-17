@@ -38,14 +38,14 @@ tf::StampedTransform ArdroneTf::get_transform(const char* frame1,
   return trans;
 }
 
-void ArdroneTf::SetRefPose(int number) {
+void ArdroneTf::SetRefPose() {
   tf::StampedTransform stam_trans;
   stam_trans = this->get_transform("odom", "ardrone_base_link");
   tf::Transform trans(_ground_quaternion, stam_trans.getOrigin());
   _broadcaster.sendTransform(
       tf::StampedTransform(trans, ros::Time::now(), "odom", "ref_pose"));
 
-  _cur_number = number;
+  _cur_number++;
 }
 
 double ArdroneTf::YawDiff() {
@@ -83,3 +83,8 @@ void ArdroneTf::SetRefQuaternion() {
       this->get_transform("odom", "ardrone_base_link").getRotation();
 
 }
+
+int ArdroneTf::get_cur_number() {
+  return _cur_number;
+}
+
