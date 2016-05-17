@@ -11,6 +11,7 @@
 #include <tf/transform_listener.h>
 #include <tf/transform_broadcaster.h>
 #include <vector>
+#define PI 3.14159265
 
 using namespace std;
 
@@ -20,6 +21,7 @@ public:
   virtual ~ArdroneTf();
 
   void SetRefPose(int number);
+  void SetRefQuaternion();
   double YawDiff();
   double XDiff();
   double YDiff();
@@ -35,6 +37,7 @@ private:
 
   tf::TransformListener _listener;
   tf::TransformBroadcaster _broadcaster;
+  tf::Quaternion _ground_quaternion;
 
   const char* _file_path;
   int _cur_number;
@@ -43,4 +46,3 @@ private:
 };
 
 #endif // !ARDRONETF_H_
-

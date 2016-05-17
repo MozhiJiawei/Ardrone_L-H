@@ -19,23 +19,24 @@
 #include "tools/SL_Print.h"
 #include "tools/SL_DrawCorners.h"
 
-#include "ROSThread.h"
-#include "VideoRecorder.h"
+#include "AffineTransform.h"
+#include "ARDrone.h"
+#include "ArdroneTf.h"
+#include "CMDReciever.h"
+#include "GridDetector.h"
 #include "IMURecorder.h"
 #include "ImgRecon.h"
-#include "GridDetector.h"
 #include "PIDController.h"
-#include "AffineTransform.h"
 #include "PredictNumber.h"
+#include "ROSThread.h"
+#include "VideoRecorder.h"
 #include "SearchNumber.h"
-#include "CMDReciever.h"
-#include "time.h"
 
+#include "time.h"
 #include <opencv2/opencv.hpp>
 #include <vector>
 #include "opencv2/legacy/blobtrack.hpp"
 #include "math.h"
-#define PI 3.14159265
 
 #include <ros/ros.h>
 #include <keyboard/Key.h>
@@ -43,7 +44,8 @@
 #include <tf/transform_broadcaster.h>
 using namespace std;
 
-#define Test 1
+#define Test 0
+#define Test_tf_yaw 1
 
 static int mGrids = 5;
 static int nGrids = 6;
@@ -72,11 +74,11 @@ void writeIMUMeas(const vector<IMUData>& imumeas, const char* filePath) {
 
 #define CLIP3(_n1, _n,  _n2) {if (_n<_n1) _n=_n1;  if (_n>_n2) _n=_n2;}
 ofstream fout("/home/mozhi/Record/test.txt", ios::app);
-#include "ARDrone.h"
 
 void* Control_loop(void* param) {
   ARDrone drone;
   drone.setup();
+  ArdroneTf drone_tf("/home/mozhi/Logs/tf.txt");
   CMDReciever cmdreader("/home/mozhi/Logs/cmd.txt", drone);
   IMURecorder imureader("/home/mozhi/Record/imu.txt");
   VideoRecorder videoreader("/home/mozhi/Record/video_ts.txt", "/home/mozhi/Record/video.avi");
@@ -142,6 +144,13 @@ void* Control_loop(void* param) {
   clock_t landing_time;
 
   bool land_centered = false;
+
+#if Test_tf_yaw
+  while (ros::ok()) {
+    usleep(250000);
+    log << "yaw = " << drone_tf.YawDiff() << endl;
+  }
+#endif
 #if Test
   tf::TransformListener listener;
   double control_time;
@@ -290,7 +299,7 @@ void* Control_loop(void* param) {
   }
   drone.land();
   ros::spin();
-#endif
+#else
   
   cvNamedWindow("a", 1);
   while (ros::ok()) {
@@ -360,16 +369,16 @@ void* Control_loop(void* param) {
           }
           else {
             upd = 0;
-            errorturn = -img_recon.GetTopPointDiff();
+            errorturn = -drone_tf.YawDiff();
             log << "angle diff = " << errorturn << endl; 
-            turnleftr = errorturn / 200;
+            turnleftr = errorturn / 100;
           }
           CLIP3(-0.1, leftr, 0.1);
           CLIP3(-0.1, forwardb, 0.1);
           CLIP3(-0.2, upd, 0.2);
           CLIP3(-0.1, turnleftr, 0.1);
 
-          if (abs(errorx) < 30 && abs(errory) < 30 && abs(errorturn) < 10) {
+          if (abs(errorx) < 30 && abs(errory) < 30 && abs(errorturn) < 0.08) {
             if (upd == 0) {
               if ((clock() - pid_stable_time) / CLOCKS_PER_SEC * 1000
                   > 500) {
@@ -504,6 +513,7 @@ void* Control_loop(void* param) {
     cv::waitKey(1);
   }
   drone.land();
+#endif
   cvReleaseImage(&imgsrc);
   return 0;
 }
