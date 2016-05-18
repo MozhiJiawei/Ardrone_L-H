@@ -32,7 +32,7 @@ tf::StampedTransform ArdroneTf::get_transform(const char* frame1,
   tf::StampedTransform trans;
   try {
     ros::Time now = ros::Time::now();
-    listener.waitForTransform(frame1, frame2,
+    _listener.waitForTransform(frame1, frame2,
       now, ros::Duration(3.0));
 
     _listener.lookupTransform(frame1, frame2,
@@ -48,7 +48,7 @@ tf::StampedTransform ArdroneTf::get_transform(const char* frame1,
 
 void ArdroneTf::SetRefPose() {
   _ref_trans = this->get_transform("odom", "ardrone_base_link");
-  tf::Quaternion = ref_qua = _ref_trans.getRotation();
+  tf::Quaternion ref_qua = _ref_trans.getRotation();
   /*
   // Two method of setting referance pose
   double yaw_ref, pitch, roll;
@@ -64,7 +64,7 @@ void ArdroneTf::SetRefPose() {
   LogCurTime();
   _log << "set number" << _cur_number << "'s referace pose" << endl;
   double yaw, pitch, roll;
-  _ref_trans.getBasis().getEulerYPR(yaw_ref, pitch, roll);
+  _ref_trans.getBasis().getEulerYPR(yaw, pitch, roll);
   _log << "Tx = " << _ref_trans.getOrigin().x()
        << " Ty = " << _ref_trans.getOrigin().y()
        << " Tz = " << _ref_trans.getOrigin().z() << endl;

@@ -331,7 +331,9 @@ void* Control_loop(void* param) {
       switch (cur_mode) {
       case START:
         LogCurTime(log);
-        log << "ReStart! current number is " << drone_tf.get_cur_number();
+        log << "ReStart! current number is " << drone_tf.get_cur_number() 
+            << endl;
+
         drone.hover();
         drone.takeOff();
         takeoff_time = (double)ros::Time::now().toSec();
@@ -530,13 +532,13 @@ void* Control_loop(void* param) {
       }
     }
     lostframe++;
-    if (lostframe > 100) {
-      drone.hover(); // if the video is not fluent
-      continue;
-    }
     if (lostframe > 3000) 
     {
       drone.land(); // if the video is not fluent
+      continue;
+    }
+    if (lostframe > 100) {
+      drone.hover(); // if the video is not fluent
       continue;
     }
     if (cur_mode == cmdreader.GetMode() && cur_mode != MANUL) {
@@ -552,7 +554,7 @@ void* Control_loop(void* param) {
       }
     }
     cvShowImage("a", imgsrc);
-    cout << img_recon.GetNumber() << endl;
+    //cout << img_recon.GetNumber() << endl;
     cv::waitKey(1);
   }
   drone.land();
