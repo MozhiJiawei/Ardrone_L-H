@@ -11,6 +11,8 @@
 #include <tf/transform_listener.h>
 #include <tf/transform_broadcaster.h>
 #include <vector>
+#include <fstream>
+#include "time.h"
 #define PI 3.14159265
 
 using namespace std;
@@ -39,11 +41,14 @@ private:
   tf::TransformListener _listener;
   tf::TransformBroadcaster _broadcaster;
   tf::Quaternion _ground_quaternion;
+  tf::StampedTransform _ref_trans;
 
   const char* _file_path;
   int _cur_number;
+  ofstream _log;
 
   tf::StampedTransform get_transform(const char* frame1, const char* frame2);
+  void LogCurTime();
 };
 
 #endif // !ARDRONETF_H_

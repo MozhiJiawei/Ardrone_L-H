@@ -332,15 +332,11 @@ void* Control_loop(void* param) {
       case START:
         LogCurTime(log);
         log << "ReStart! current number is " << drone_tf.get_cur_number();
-        if (drone_tf.get_cur_number() == 0) {
-          drone_tf.SetRefQuaternion();
-        }
         drone.hover();
         drone.takeOff();
         takeoff_time = (double)ros::Time::now().toSec();
         while((double)ros::Time::now().toSec() < takeoff_time + 4);
         next_mode = TAKEOFF;
-        continue;
         break;
       case TAKEOFF:
         LogCurTime(log);
@@ -381,8 +377,7 @@ void* Control_loop(void* param) {
           }
           else {
             upd = 0;
-            errorturn = -drone_tf.YawDiff();
-            // /? remained to be set.
+            errorturn = - img_recon.GetTopPointDiff();
             turnleftr = errorturn / 10;
           }
           CLIP3(-0.1, leftr, 0.1);
@@ -402,8 +397,6 @@ void* Control_loop(void* param) {
                 next_mode = FLYING;
                 errorx = 0;
                 errory = 0;
-                land_centered = false;
-                continue;
               }
               log << "PID Complete" << endl;
             }
@@ -471,6 +464,7 @@ void* Control_loop(void* param) {
             // not exist?
             // rising.
             log << "Flying! Arrived" << endl;
+            cout << "Arrived!!!" << endl;
             if (img_recon.ContourExist()) {
               log << "Counter found, ready to land" << endl;
               next_mode = LAND;
