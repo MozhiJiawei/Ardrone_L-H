@@ -36,17 +36,14 @@ tf::StampedTransform ArdroneTf::get_transform(const char* frame1,
     //  now, ros::Duration(1.0));
 
     _listener.lookupTransform(frame1, frame2,
-        ros::Time(0.0), trans);
+        ros::Time(0), trans);
 
   }
   catch (tf::TransformException ex) {
     ROS_ERROR("%s", ex.what());
     ros::Duration(1.0).sleep();
   }
-    if(frame1 == "ref_pose") {
-      cout << "Yes!" << endl;
-      _broadcaster.sendTransform(_ref_trans);
-    }
+
   return trans;
 }
 
@@ -100,13 +97,17 @@ double ArdroneTf::YawDiff() {
 }
 
 double ArdroneTf::XDiff() {
-  return this->get_transform("ref_pose", "ardrone_base_link").getOrigin().x()
+  _ref_trans.stamp_ = ros::Time::now();
+  _broadcaster.sendTransform(_ref_trans);
+  return - this->get_transform("ref_pose", "ardrone_base_link").getOrigin().x()
       - _num_distance[_cur_number]._x;
 
 }
 
 double ArdroneTf::YDiff() {
-  return this->get_transform("ref_pose", "ardrone_base_link").getOrigin().y() 
+  _ref_trans.stamp_ = ros::Time::now();
+  _broadcaster.sendTransform(_ref_trans);
+  return - this->get_transform("ref_pose", "ardrone_base_link").getOrigin().y() 
       - _num_distance[_cur_number]._y;
 
 }

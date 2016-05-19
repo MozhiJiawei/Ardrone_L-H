@@ -380,7 +380,7 @@ void* Control_loop(void* param) {
           else {
             upd = 0;
             errorturn = - img_recon.GetTopPointDiff();
-            turnleftr = errorturn / 3;
+            turnleftr = errorturn;
           }
           CLIP3(-0.1, leftr, 0.1);
           CLIP3(-0.1, forwardb, 0.1);
@@ -451,7 +451,7 @@ void* Control_loop(void* param) {
 
         errorturn = -drone_tf.YawDiff();
         // /? remained to be set.
-        turnleftr = errorturn / 10;
+        turnleftr = errorturn ;
 
         CLIP3(-0.1, leftr, 0.1);
         CLIP3(-0.1, forwardb, 0.1);
