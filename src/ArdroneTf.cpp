@@ -9,8 +9,8 @@
 
 ArdroneTf::ArdroneTf(const char* file_name) : _file_path(file_name) {
   _cur_number = 0;
-  _num_distance.push_back(_distance(1, 0));
-  _num_distance.push_back(_distance(1, 0));
+  _num_distance.push_back(_distance(1.9, -1.83));
+  _num_distance.push_back(_distance(0.2, 3.3));
   _num_distance.push_back(_distance(0, 0));
   _num_distance.push_back(_distance(0, 0));
   _num_distance.push_back(_distance(0, 0));
@@ -50,12 +50,12 @@ tf::StampedTransform ArdroneTf::get_transform(const char* frame1,
 void ArdroneTf::SetRefPose() {
   _ref_trans = this->get_transform("odom", "ardrone_base_link");
   tf::Quaternion ref_qua = _ref_trans.getRotation();
-  /*
+  /* 
   // Two method of setting referance pose
   double yaw_ref, pitch, roll;
   _ref_trans.getBasis().getEulerYPR(yaw_ref, pitch, roll);
   ref_qua.SetEulerZYX(yaw_ref, 0.0, 0.0);
-  */
+  */ 
   tf::Transform trans(ref_qua, _ref_trans.getOrigin());
   _ref_trans = tf::StampedTransform(trans, ros::Time::now(),"odom", "ref_pose");
   _broadcaster.sendTransform(_ref_trans);
@@ -100,7 +100,7 @@ double ArdroneTf::XDiff() {
   _ref_trans.stamp_ = ros::Time::now();
   _broadcaster.sendTransform(_ref_trans);
   return - this->get_transform("ref_pose", "ardrone_base_link").getOrigin().x()
-      - _num_distance[_cur_number]._x;
+      - _num_distance[_cur_number-1]._x;
 
 }
 
@@ -108,7 +108,7 @@ double ArdroneTf::YDiff() {
   _ref_trans.stamp_ = ros::Time::now();
   _broadcaster.sendTransform(_ref_trans);
   return - this->get_transform("ref_pose", "ardrone_base_link").getOrigin().y() 
-      - _num_distance[_cur_number]._y;
+      - _num_distance[_cur_number-1]._y;
 
 }
 

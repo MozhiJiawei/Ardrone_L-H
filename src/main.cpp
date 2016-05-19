@@ -337,7 +337,7 @@ void* Control_loop(void* param) {
         drone.hover();
         drone.takeOff();
         takeoff_time = (double)ros::Time::now().toSec();
-        while((double)ros::Time::now().toSec() < takeoff_time + 6);
+        while((double)ros::Time::now().toSec() < takeoff_time + 4);
         next_mode = TAKEOFF;
         break;
       case TAKEOFF:
@@ -371,16 +371,16 @@ void* Control_loop(void* param) {
           leftr /= 15000;        forwardb /= 15000;
           if (thread.navdata.altd < 1400) {
             upd = 0.002 * (1400 - thread.navdata.altd);
-            turnleftr = 0;
           }
           else if (thread.navdata.altd > 1450) {
             upd = 0.002 * (1450 - thread.navdata.altd);
-            turnleftr = 0;
           }
           else {
             upd = 0;
+          }
+          if(thread.navdata.altd > 1300) {
             errorturn = - img_recon.GetTopPointDiff();
-            turnleftr = errorturn;
+            turnleftr = errorturn * 10;
           }
           CLIP3(-0.1, leftr, 0.1);
           CLIP3(-0.1, forwardb, 0.1);
@@ -451,7 +451,7 @@ void* Control_loop(void* param) {
 
         errorturn = -drone_tf.YawDiff();
         // /? remained to be set.
-        turnleftr = errorturn ;
+        turnleftr = errorturn * 10;
 
         CLIP3(-0.1, leftr, 0.1);
         CLIP3(-0.1, forwardb, 0.1);
@@ -461,6 +461,13 @@ void* Control_loop(void* param) {
         if (abs(errorx) < 0.1 && abs(errory) < 0.1) {
           // conterExist? center is in the right direction?
           // go there
+          log << "Flying! Getting close!" << endl;
+          if (img_recon.ContourExist()) {
+            log << "Counter found, ready to land" << endl;
+            next_mode = LAND;
+            errorx = 0;
+            errory = 0;
+          }
           if (abs(errorx) < 0.05 && abs(errory) < 0.05) {
             // conterExist?
             // go there
@@ -515,15 +522,18 @@ void* Control_loop(void* param) {
           upd = 0;
           turnleftr = 0;
           if (abs(errorx) < 30 && abs(errory) < 30) {
-            drone.hover();
-            usleep(500000);
-            drone.land();
-            log << "LANDING! Already centered" << endl;
-            landing_time = (double)ros::Time::now().toSec();
-            while ((double)ros::Time::now().toSec() < landing_time + 10);
-            next_mode = START;
+            if ((clock() - pid_stable_time) / CLOCKS_PER_SEC * 1000 > 500) {
+              drone.hover();
+              usleep(500000);
+              drone.land();
+              log << "LANDING! Already centered" << endl;
+              landing_time = (double)ros::Time::now().toSec();
+              while ((double)ros::Time::now().toSec() < landing_time + 10);
+              next_mode = START;
+            }
           }
           else {
+            pid_stable_time = clock();
             log << "LANDING! PID to center" << endl;
           }
         }
