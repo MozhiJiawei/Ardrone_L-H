@@ -9,8 +9,8 @@
 
 ArdroneTf::ArdroneTf(const char* file_name) : _file_path(file_name) {
   _cur_number = 0;
-  _num_distance.push_back(_distance(0, 0));
-  _num_distance.push_back(_distance(0, 0));
+  _num_distance.push_back(_distance(1, 0));
+  _num_distance.push_back(_distance(1, 0));
   _num_distance.push_back(_distance(0, 0));
   _num_distance.push_back(_distance(0, 0));
   _num_distance.push_back(_distance(0, 0));
@@ -32,17 +32,21 @@ tf::StampedTransform ArdroneTf::get_transform(const char* frame1,
   tf::StampedTransform trans;
   try {
     ros::Time now = ros::Time::now();
-    _listener.waitForTransform(frame1, frame2,
-      now, ros::Duration(3.0));
+    //_listener.waitForTransform(frame1, frame2,
+    //  now, ros::Duration(1.0));
 
     _listener.lookupTransform(frame1, frame2,
-      now, trans);
+        ros::Time(0.0), trans);
 
   }
   catch (tf::TransformException ex) {
     ROS_ERROR("%s", ex.what());
     ros::Duration(1.0).sleep();
   }
+    if(frame1 == "ref_pose") {
+      cout << "Yes!" << endl;
+      _broadcaster.sendTransform(_ref_trans);
+    }
   return trans;
 }
 
@@ -56,8 +60,8 @@ void ArdroneTf::SetRefPose() {
   ref_qua.SetEulerZYX(yaw_ref, 0.0, 0.0);
   */
   tf::Transform trans(ref_qua, _ref_trans.getOrigin());
-  _broadcaster.sendTransform(
-      tf::StampedTransform(trans, ros::Time::now(), "odom", "ref_pose"));
+  _ref_trans = tf::StampedTransform(trans, ros::Time::now(),"odom", "ref_pose");
+  _broadcaster.sendTransform(_ref_trans);
 
   _cur_number++;
   //Log Info
@@ -71,6 +75,7 @@ void ArdroneTf::SetRefPose() {
 
   _log << "yaw = " << yaw << " pitch = " << pitch << " roll = " << roll << endl;
 }
+
 
 double ArdroneTf::YawDiff() {
   double yaw, yaw_ref, yaw_diff;

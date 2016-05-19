@@ -105,7 +105,7 @@ void* Control_loop(void* param) {
   Mat imgmat;
 
   system("rosservice call /ardrone/setcamchannel 1");
-  system("rosservice call /ardrone/flattrim");
+  //system("rosservice call /ardrone/flattrim");
   //system("rosservice call /ardrone/setrecord 1");
   ///////////////////////// PID control parameters
   double targetx, targety;
@@ -337,7 +337,7 @@ void* Control_loop(void* param) {
         drone.hover();
         drone.takeOff();
         takeoff_time = (double)ros::Time::now().toSec();
-        while((double)ros::Time::now().toSec() < takeoff_time + 4);
+        while((double)ros::Time::now().toSec() < takeoff_time + 6);
         next_mode = TAKEOFF;
         break;
       case TAKEOFF:
@@ -380,7 +380,7 @@ void* Control_loop(void* param) {
           else {
             upd = 0;
             errorturn = - img_recon.GetTopPointDiff();
-            turnleftr = errorturn / 10;
+            turnleftr = errorturn / 3;
           }
           CLIP3(-0.1, leftr, 0.1);
           CLIP3(-0.1, forwardb, 0.1);
@@ -429,6 +429,7 @@ void* Control_loop(void* param) {
         }
         break;
       case FLYING:
+        LogCurTime(log);
         lasterrorx = errorx;
         lasterrory = errory;
         errorx = drone_tf.XDiff();
