@@ -32,11 +32,11 @@ tf::StampedTransform ArdroneTf::get_transform(const char* frame1,
   tf::StampedTransform trans;
   try {
     ros::Time now = ros::Time::now();
-    //_listener.waitForTransform(frame1, frame2,
-    //  now, ros::Duration(1.0));
+    _listener.waitForTransform(frame1, frame2,
+      now, ros::Duration(1.0));
 
     _listener.lookupTransform(frame1, frame2,
-        ros::Time(0), trans);
+        now, trans);
 
   }
   catch (tf::TransformException ex) {
@@ -47,18 +47,24 @@ tf::StampedTransform ArdroneTf::get_transform(const char* frame1,
   return trans;
 }
 
-void ArdroneTf::SetRefPose() {
+void ArdroneTf::SetRefPose(double angle_offset) {
   _ref_trans = this->get_transform("odom", "ardrone_base_link");
   tf::Quaternion ref_qua = _ref_trans.getRotation();
-  /* 
-  // Two method of setting referance pose
-  double yaw_ref, pitch, roll;
-  _ref_trans.getBasis().getEulerYPR(yaw_ref, pitch, roll);
-  ref_qua.SetEulerZYX(yaw_ref, 0.0, 0.0);
-  */ 
-  tf::Transform trans(ref_qua, _ref_trans.getOrigin());
-  _ref_trans = tf::StampedTransform(trans, ros::Time::now(),"odom", "ref_pose");
-  _broadcaster.sendTransform(_ref_trans);
+  double yaw_plane, pitch, roll;
+  _ref_trans.getBasis().getEulerYPR(yaw_plane, pitch, roll);
+
+  // Two way of setting referance pose
+  ref_qua.setEulerZYX(yaw_plane - angle_offset, 0.0, 0.0);
+  //ref_qua.setEulerZYX(yaw_plane - angle_offset, pitch, roll)
+
+  tf::Transform input(ref_qua, _ref_trans.getOrigin());
+  _ref_trans.setData(input);
+  if (_cur_number == 0) {
+    _br.NewBr(input, "odom", "ref_pose");
+  }
+  else {
+    _br.SetRefPose(input, "odom", "ref_pose");
+  }
 
   _cur_number++;
   //Log Info
@@ -97,26 +103,22 @@ double ArdroneTf::YawDiff() {
 }
 
 double ArdroneTf::XDiff() {
-  _ref_trans.stamp_ = ros::Time::now();
-  _broadcaster.sendTransform(_ref_trans);
   return - this->get_transform("ref_pose", "ardrone_base_link").getOrigin().x()
       - _num_distance[_cur_number-1]._x;
 
 }
 
 double ArdroneTf::YDiff() {
-  _ref_trans.stamp_ = ros::Time::now();
-  _broadcaster.sendTransform(_ref_trans);
   return - this->get_transform("ref_pose", "ardrone_base_link").getOrigin().y() 
       - _num_distance[_cur_number-1]._y;
 
 }
 
-void ArdroneTf::SetRefQuaternion() {
-  _ground_quaternion = 
-      this->get_transform("odom", "ardrone_base_link").getRotation();
-
-}
+//void ArdroneTf::SetRefQuaternion() {
+//  _ground_quaternion = 
+//      this->get_transform("odom", "ardrone_base_link").getRotation();
+//
+//}
 
 int ArdroneTf::get_cur_number() {
   return _cur_number;

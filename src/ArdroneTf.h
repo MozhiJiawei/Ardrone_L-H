@@ -13,6 +13,7 @@
 #include <vector>
 #include <fstream>
 #include "time.h"
+#include "RefPoseBr.h"
 #define PI 3.14159265
 
 using namespace std;
@@ -22,8 +23,8 @@ public:
   ArdroneTf(const char* file_name);
   virtual ~ArdroneTf();
 
-  void SetRefPose();
-  void SetRefQuaternion();
+  void SetRefPose(double angle_offset);
+  //void SetRefQuaternion();
   double YawDiff();
   double XDiff();
   double YDiff();
@@ -38,10 +39,10 @@ private:
   };
   vector<_distance> _num_distance;
 
+  RefPoseBr _br;
   tf::TransformListener _listener;
-  tf::TransformBroadcaster _broadcaster;
-  tf::Quaternion _ground_quaternion;
   tf::StampedTransform _ref_trans;
+  //tf::Quaternion _ground_quaternion;
 
   const char* _file_path;
   int _cur_number;

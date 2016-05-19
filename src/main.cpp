@@ -336,9 +336,11 @@ void* Control_loop(void* param) {
 
         drone.hover();
         drone.takeOff();
-        takeoff_time = (double)ros::Time::now().toSec();
-        while((double)ros::Time::now().toSec() < takeoff_time + 4);
-        next_mode = TAKEOFF;
+        //takeoff_time = (double)ros::Time::now().toSec();
+        //while((double)ros::Time::now().toSec() < takeoff_time + 4);
+        if (thread.navdata.altd > 650) {
+          next_mode = TAKEOFF;
+        }
         break;
       case TAKEOFF:
         LogCurTime(log);
@@ -382,12 +384,16 @@ void* Control_loop(void* param) {
             errorturn = - img_recon.GetTopPointDiff();
             turnleftr = errorturn * 10;
           }
+          else {
+            turnleftr = 0;
+          }
           CLIP3(-0.1, leftr, 0.1);
           CLIP3(-0.1, forwardb, 0.1);
           CLIP3(-0.2, upd, 0.2);
           CLIP3(-0.1, turnleftr, 0.1);
 
           if (abs(errorx) < 30 && abs(errory) < 30 && abs(errorturn) < 0.08) {
+            turnleftr = 0;
             if (upd == 0) {
               if ((clock() - pid_stable_time) / CLOCKS_PER_SEC * 1000
                   > 500) {
@@ -395,7 +401,7 @@ void* Control_loop(void* param) {
                 log << "TAKEOFF Complete! Start Flying to " 
                     << drone_tf.get_cur_number() + 1<< endl;
                 
-                drone_tf.SetRefPose();
+                drone_tf.SetRefPose(errorturn);
                 next_mode = FLYING;
                 errorx = 0;
                 errory = 0;
@@ -450,7 +456,6 @@ void* Control_loop(void* param) {
         leftr /= 15000;        forwardb /= 15000;
 
         errorturn = -drone_tf.YawDiff();
-        // /? remained to be set.
         turnleftr = errorturn * 10;
 
         CLIP3(-0.1, leftr, 0.1);
@@ -528,7 +533,7 @@ void* Control_loop(void* param) {
               drone.land();
               log << "LANDING! Already centered" << endl;
               landing_time = (double)ros::Time::now().toSec();
-              while ((double)ros::Time::now().toSec() < landing_time + 10);
+              while ((double)ros::Time::now().toSec() < landing_time + 8);
               next_mode = START;
             }
           }
