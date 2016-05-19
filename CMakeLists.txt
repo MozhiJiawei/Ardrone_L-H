@@ -30,6 +30,7 @@ set(SOURCE_FILES
         src/VideoRecorder.cpp
         src/CMDReciever.cpp
         src/ArdroneTf.cpp
+        src/RefPoseBr.cpp
 
         src/ARDrone.cpp
         src/PIDController.cpp

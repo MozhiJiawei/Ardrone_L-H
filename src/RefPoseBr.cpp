@@ -20,13 +20,12 @@ void RefPoseBr::Start() {
   pthread_attr_t attr;
   pthread_attr_init(&attr);
   pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_JOINABLE);
-  pthread_create(&_threadId, &attr, ThreadProc, this);
+  pthread_create(&_threadID, &attr, ThreadProc, this);
 }
 
 void * RefPoseBr::ThreadProc(void * data) {
   RefPoseBr* broadcaster = (RefPoseBr*)data;
   broadcaster->Loop();
-  return;
 }
 
 void RefPoseBr::Loop() {
@@ -41,7 +40,7 @@ void RefPoseBr::Loop() {
   while (node.ok() && !_toQuit) {
     pthread_mutex_lock(&_mutex);
     for (itr = _ref_pose.begin(); itr != _ref_pose.end(); ++itr) {
-      *itr.stamp_ = ros::Time::now();
+      (*itr).stamp_ = ros::Time::now();
       _br.sendTransform(*itr);
     }
     pthread_mutex_unlock(&_mutex);
@@ -63,7 +62,7 @@ void RefPoseBr::End() {
 
     pthread_mutex_lock(&_mutex);
     pthread_mutex_unlock(&_mutex);
-    pthread_join(_threadId, 0);
+    pthread_join(_threadID, 0);
     std::cout << "RefPose BroadCast thread quit!" << std::endl;
   }
 }
@@ -73,19 +72,19 @@ vector<tf::StampedTransform>::iterator RefPoseBr::FindPose(
 
   vector<tf::StampedTransform>::iterator itr;
   for (itr = _ref_pose.begin(); itr != _ref_pose.end(); ++itr) {
-    if (*itr.child_frame_id_ == child_frame_id &&
-        *itr.frame_id_ == frame_id) {
+    if ((*itr).child_frame_id_ == child_frame_id &&
+        (*itr).frame_id_ == frame_id) {
 
       return itr;
     }
   }
-  return NULL;
+  return _ref_pose.end();
 }
 
 void RefPoseBr::NewBr(const tf::Transform input, const std::string& frame_id,
-  std::string& child_frame_id) {
+  const std::string& child_frame_id) {
 
-  if (FindPose(frame_id, child_frame_id) == NULL) {
+  if (FindPose(frame_id, child_frame_id) == _ref_pose.end()) {
     pthread_mutex_lock(&_mutex);
     _ref_pose.push_back(tf::StampedTransform(input, ros::Time::now(), 
         frame_id, child_frame_id));
@@ -106,9 +105,9 @@ void RefPoseBr::SetRefPose(const tf::Transform input,
 
   vector<tf::StampedTransform>::iterator itr;
   itr = FindPose(frame_id, child_frame_id);
-  if (itr != NULL) {
+  if (itr != _ref_pose.end()) {
     pthread_mutex_lock(&_mutex);
-    *itr.setData(input);
+    (*itr).setData(input);
     pthread_mutex_unlock(&_mutex);
   }
   else {

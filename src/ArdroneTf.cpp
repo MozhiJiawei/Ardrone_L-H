@@ -70,13 +70,14 @@ void ArdroneTf::SetRefPose(double angle_offset) {
   //Log Info
   LogCurTime();
   _log << "set number" << _cur_number << "'s referace pose" << endl;
-  double yaw, pitch, roll;
-  _ref_trans.getBasis().getEulerYPR(yaw, pitch, roll);
+  _ref_trans.getBasis().getEulerYPR(yaw_plane, pitch, roll);
   _log << "Tx = " << _ref_trans.getOrigin().x()
        << " Ty = " << _ref_trans.getOrigin().y()
        << " Tz = " << _ref_trans.getOrigin().z() << endl;
 
-  _log << "yaw = " << yaw << " pitch = " << pitch << " roll = " << roll << endl;
+  _log << "yaw = " << yaw_plane << " pitch = " 
+       << pitch << " roll = " << roll << endl;
+
 }
 
 

@@ -17,7 +17,7 @@ using namespace std;
 class RefPoseBr {
 public:
   RefPoseBr();
-  virtual ~RefPose();
+  virtual ~RefPoseBr();
 
   void NewBr(const tf::Transform input, const std::string& frame_id, 
     const std::string& child_frame_id);
@@ -29,7 +29,7 @@ private:
   vector<tf::StampedTransform> _ref_pose;
   bool _running;
   bool _toQuit;
-  pthread_t _threadId;
+  pthread_t _threadID;
   pthread_mutex_t _mutex;
   tf::TransformBroadcaster _br;
 
