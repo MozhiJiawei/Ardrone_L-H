@@ -336,11 +336,9 @@ void* Control_loop(void* param) {
 
         drone.hover();
         drone.takeOff();
-        //takeoff_time = (double)ros::Time::now().toSec();
-        //while((double)ros::Time::now().toSec() < takeoff_time + 4);
-        if (thread.navdata.altd > 650) {
-          next_mode = TAKEOFF;
-        }
+        takeoff_time = (double)ros::Time::now().toSec();
+        while((double)ros::Time::now().toSec() < takeoff_time + 5);
+        next_mode = TAKEOFF;
         break;
       case TAKEOFF:
         LogCurTime(log);
@@ -380,7 +378,7 @@ void* Control_loop(void* param) {
           else {
             upd = 0;
           }
-          if(thread.navdata.altd > 1300) {
+          if(thread.navdata.altd > 1200) {
             errorturn = - img_recon.GetTopPointDiff();
             turnleftr = errorturn * 10;
           }
@@ -441,8 +439,8 @@ void* Control_loop(void* param) {
         errorx = drone_tf.XDiff();
         errory = drone_tf.YDiff();
         //vk to be set.
-        targetvx = -vk * (2 * errorx - lasterrorx) * 300;
-        targetvy = -vk * (2 * errory - lasterrory) * 300;
+        targetvx = -vk * (2 * errorx - lasterrorx) * 600;
+        targetvy = -vk * (2 * errory - lasterrory) * 600;
         if (errorx > 80 || errorx < -80) {
           targetvx += -vk * errorx + 80 * vk;
         }
@@ -463,7 +461,7 @@ void* Control_loop(void* param) {
         upd = 0;
         CLIP3(-0.1, turnleftr, 0.1);
 
-        if (abs(errorx) < 0.1 && abs(errory) < 0.1) {
+        if (abs(errorx) < 0.2 && abs(errory) < 0.2) {
           // conterExist? center is in the right direction?
           // go there
           log << "Flying! Getting close!" << endl;

@@ -11,13 +11,13 @@ ArdroneTf::ArdroneTf(const char* file_name) : _file_path(file_name) {
   _cur_number = 0;
   _num_distance.push_back(_distance(1.9, -1.83));
   _num_distance.push_back(_distance(0.2, 3.3));
-  _num_distance.push_back(_distance(0, 0));
-  _num_distance.push_back(_distance(0, 0));
-  _num_distance.push_back(_distance(0, 0));
-  _num_distance.push_back(_distance(0, 0));
-  _num_distance.push_back(_distance(0, 0));
-  _num_distance.push_back(_distance(0, 0));
-  _num_distance.push_back(_distance(0, 0));
+  _num_distance.push_back(_distance(0.4, -1.6));
+  _num_distance.push_back(_distance(1.9, -1.6));
+  _num_distance.push_back(_distance(2.96, 2.28));
+  _num_distance.push_back(_distance(-2.8, 0.6));
+  _num_distance.push_back(_distance(4.8, 0.1));
+  _num_distance.push_back(_distance(-0.6, -2.6));
+  _num_distance.push_back(_distance(-3.45, 0.9));
   _log.open(file_name);
   if (!_log) {
     cout << "ArdroneTf cannot open file to log" << endl;
@@ -54,8 +54,8 @@ void ArdroneTf::SetRefPose(double angle_offset) {
   _ref_trans.getBasis().getEulerYPR(yaw_plane, pitch, roll);
 
   // Two way of setting referance pose
-  ref_qua.setEulerZYX(yaw_plane - angle_offset, 0.0, 0.0);
-  //ref_qua.setEulerZYX(yaw_plane - angle_offset, pitch, roll)
+  //ref_qua.setEulerZYX(yaw_plane - angle_offset, 0.0, 0.0);
+  ref_qua.setEulerZYX(yaw_plane - angle_offset, pitch, roll); 
 
   tf::Transform input(ref_qua, _ref_trans.getOrigin());
   _ref_trans.setData(input);
