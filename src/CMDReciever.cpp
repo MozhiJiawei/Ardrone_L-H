@@ -58,6 +58,10 @@ void CMDReciever::SetMode(ModeType mode) {
   pthread_mutex_lock(&_mode_mutex);
   _mode = mode;
   pthread_mutex_unlock(&_mode_mutex);
+
+  if (_mode == START) {
+    _is_reset = true;
+  }
 }
 
 void CMDReciever::RunNextMode(ModeType mode, double y_left, double x_forward,
@@ -74,9 +78,8 @@ void CMDReciever::RunNextMode(ModeType mode, double y_left, double x_forward,
   case TAKEOFF:
   case LAND:
   case FLYING:
+  case SEARCHING:
     _drone.move(y_left, x_forward, z_up, angle_turn);
-    break;
-  case START:
     break;
   default:
     break;

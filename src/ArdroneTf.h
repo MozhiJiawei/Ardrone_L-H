@@ -25,10 +25,12 @@ public:
 
   void SetRefPose(double angle_offset);
   //void SetRefQuaternion();
+  void GetDiff(double& error_x, double& error_y, double& error_turn);
   double YawDiff();
   double XDiff();
   double YDiff();
-  int get_cur_number();
+  int _cur_number;
+  int _tar_number;
 
 private:
   struct _distance{
@@ -37,7 +39,7 @@ private:
 
     _distance(double x, double y) : _x(x), _y(y) {}
   };
-  vector<_distance> _num_distance;
+  vector<vector<_distance>> _num_distance;
 
   RefPoseBr _br;
   tf::TransformListener _listener;
@@ -45,7 +47,6 @@ private:
   //tf::Quaternion _ground_quaternion;
 
   const char* _file_path;
-  int _cur_number;
   ofstream _log;
 
   tf::StampedTransform get_transform(const char* frame1, const char* frame2);

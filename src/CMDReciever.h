@@ -16,7 +16,7 @@
 
 using namespace std;
 
-enum ModeType { TAKEOFF, LAND, STOP, FLYING, START, MANUL };
+enum ModeType { TAKEOFF, LAND, STOP, FLYING, SEARCHING, START, MANUL };
 
 class CMDReciever {
 public:
@@ -41,6 +41,8 @@ public:
   void Key_S_Backward();
   void Key_A_Left();
   void Key_D_Right();
+
+  bool _is_reset;
 private:
   ModeType _mode;
   ARDrone& _drone;

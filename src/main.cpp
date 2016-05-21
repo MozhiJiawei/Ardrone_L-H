@@ -46,6 +46,7 @@ using namespace std;
 
 #define Test 0
 #define Test_tf_yaw 0
+#define Odo_Test 1
 
 static int mGrids = 5;
 static int nGrids = 6;
@@ -152,6 +153,7 @@ void* Control_loop(void* param) {
   int frame_count = 0, lostframe = 0;
   ///////////////////////////////////////////////////////////
   double takeoff_time;
+  double searching_time;
   clock_t pid_stable_time;
   clock_t landing_time;
 
@@ -331,14 +333,27 @@ void* Control_loop(void* param) {
       switch (cur_mode) {
       case START:
         LogCurTime(log);
-        log << "ReStart! current number is " << drone_tf.get_cur_number() 
+        if (cmdreader._is_reset) {
+          drone_tf._tar_number = 1;
+          cmdreader._is_reset = false;
+        }
+        else {
+          drone_tf._tar_number++;
+        }
+        if (drone_tf._tar_number < 10) {
+          log << "ReStart! Next target is " << drone_tf._tar_number
             << endl;
 
-        drone.hover();
-        drone.takeOff();
-        takeoff_time = (double)ros::Time::now().toSec();
-        while((double)ros::Time::now().toSec() < takeoff_time + 5);
-        next_mode = TAKEOFF;
+          drone.hover();
+          drone.takeOff();
+          takeoff_time = (double)ros::Time::now().toSec();
+          while ((double)ros::Time::now().toSec() < takeoff_time + 5);
+          next_mode = TAKEOFF;
+        }
+        else {
+          log << "Arrived at number 9!!!!" << endl;
+          next_mode = STOP;
+        }
         break;
       case TAKEOFF:
         LogCurTime(log);
@@ -393,12 +408,14 @@ void* Control_loop(void* param) {
           if (abs(errorx) < 30 && abs(errory) < 30 && abs(errorturn) < 0.08) {
             turnleftr = 0;
             if (upd == 0) {
+              cout << img_recon.GetNumber() << endl;
               if ((clock() - pid_stable_time) / CLOCKS_PER_SEC * 1000
-                  > 500) {
+                  > 500 && img_recon.GetNumber() != -1) {
 
-                log << "TAKEOFF Complete! Start Flying to " 
-                    << drone_tf.get_cur_number() + 1<< endl;
+                log << "TAKEOFF Complete! Current Number is" 
+                  << img_recon.GetNumber() << "Start Flying!" << endl;
                 
+                drone_tf._cur_number = img_recon.GetNumber();
                 drone_tf.SetRefPose(errorturn);
                 next_mode = FLYING;
                 errorx = 0;
@@ -436,8 +453,9 @@ void* Control_loop(void* param) {
         LogCurTime(log);
         lasterrorx = errorx;
         lasterrory = errory;
-        errorx = drone_tf.XDiff();
-        errory = drone_tf.YDiff();
+        drone_tf.GetDiff(errorx, errory, errorturn);
+        //errorx = drone_tf.XDiff();
+        //errory = drone_tf.YDiff();
         //vk to be set.
         targetvx = -vk * (2 * errorx - lasterrorx) * 600;
         targetvy = -vk * (2 * errory - lasterrory) * 600;
@@ -453,7 +471,7 @@ void* Control_loop(void* param) {
         leftr = pidVY.getOutput(targetvy - thread.navdata.vy, 0.5);
         leftr /= 15000;        forwardb /= 15000;
 
-        errorturn = -drone_tf.YawDiff();
+        //errorturn = -drone_tf.YawDiff();
         turnleftr = errorturn * 10;
 
         CLIP3(-0.1, leftr, 0.1);
@@ -462,9 +480,16 @@ void* Control_loop(void* param) {
         CLIP3(-0.1, turnleftr, 0.1);
 
         if (abs(errorx) < 0.2 && abs(errory) < 0.2) {
-          // conterExist? center is in the right direction?
-          // go there
           log << "Flying! Getting close!" << endl;
+#ifdef Odo_Test
+          if (abs(errorx) < 0.05 && abs(errory) < 0.05) {
+            log << "Flying Arrived!!" << endl;
+            drone.hover();
+            usleep(500000);
+            drone.land();
+            next_mode = STOP;
+          }
+#else
           if (img_recon.ContourExist()) {
             log << "Counter found, ready to land" << endl;
             next_mode = LAND;
@@ -472,10 +497,6 @@ void* Control_loop(void* param) {
             errory = 0;
           }
           if (abs(errorx) < 0.05 && abs(errory) < 0.05) {
-            // conterExist?
-            // go there
-            // not exist?
-            // rising.
             log << "Flying! Arrived" << endl;
             cout << "Arrived!!!" << endl;
             if (img_recon.ContourExist()) {
@@ -484,7 +505,15 @@ void* Control_loop(void* param) {
               errorx = 0;
               errory = 0;
             }
+            else {
+              log << "Find nothing! Start Searching!" << endl;
+              next_mode = SEARCHING;
+              searching_time = (double)ros::time::now().toSec();
+              errorx = 0;
+              errory = 0;
+            }
           }
+#endif
         }
         else {
           log << "Flying" << endl;
@@ -493,6 +522,55 @@ void* Control_loop(void* param) {
           
           log << "  x_forward = " << forwardb << "y_left = " << leftr
               << "  z_up = " << upd << "  turn = " << turnleftr << endl;
+        }
+        break;
+      case SEARCHING:
+        LogCurTime();
+        if (img_recon.ContourExist()) {
+          log << "Contour Searched! ready to land" << endl;
+          next_mode = LAND;
+        }
+        else {
+          log << "Searing contour!" << endl;
+          if ((double)ros::Time::now().toSec() < control_time + 1) {
+            forwardb = -0.1;
+            leftr = 0;
+            turnleftr = 0;
+            upd = 0;
+          }
+          else if ((double)ros::Time::now().toSec() < control_time + 1.5) {
+            forwardb = 0;
+          }
+          else if ((double)ros::Time::now().toSec() < control_time + 2.5) {
+            forwardb = -0.1;
+          }
+          else if ((double)ros::Time::now().toSec() < control_time + 3) {
+            forwardb = 0;
+          }
+          else if ((double)ros::Time::now().toSec() < control_time + 4) {
+            forwardb = 0.1;
+          }
+          else if ((double)ros::Time::now().toSec() < control_time + 4.5) {
+            forwardb = 0;
+          }
+          else if ((double)ros::Time::now().toSec() < control_time + 5.5) {
+            forwardb = 0.1;
+          }
+          else if ((double)ros::Time::now().toSec() < control_time + 6) {
+            forwardb = 0;
+          }
+          else if ((double)ros::Time::now().toSec() < control_time + 7) {
+            forwardb = 0.1;
+          }
+          else if ((double)ros::Time::now().toSec() < control_time + 7.5) {
+            forwardb = 0;
+          }
+          else if ((double)ros::Time::now().toSec() < control_time + 8.5) {
+            forwardb = 0.1;
+          }
+          else if ((double)ros::Time::now().toSec() < control_time + 9) {
+            forwardb = 0;
+          }
         }
         break;
       case LAND: 
@@ -525,14 +603,26 @@ void* Control_loop(void* param) {
           upd = 0;
           turnleftr = 0;
           if (abs(errorx) < 30 && abs(errory) < 30) {
-            if ((clock() - pid_stable_time) / CLOCKS_PER_SEC * 1000 > 500) {
-              drone.hover();
-              usleep(500000);
-              drone.land();
-              log << "LANDING! Already centered" << endl;
-              landing_time = (double)ros::Time::now().toSec();
-              while ((double)ros::Time::now().toSec() < landing_time + 8);
-              next_mode = START;
+            cout << img_recon.GetNumber() << endl;
+            if (img_recon.GetNumber() == drone_tf._tar_number) {
+              if ((clock() - pid_stable_time) / CLOCKS_PER_SEC * 1000 > 500) {
+                drone.hover();
+                usleep(500000);
+                drone.land();
+                log << "LANDING! Already centered" << endl;
+                landing_time = (double)ros::Time::now().toSec();
+                while ((double)ros::Time::now().toSec() < landing_time + 6);
+                next_mode = START;
+              }
+            }
+            else if (img_recon.GetNumber() != -1) {
+              next_mode = TAKEOFF;
+              log << "target number is " << drone_tf._tar_number << endl;
+              log << "current number is " << img_recon.GetNumber() << endl;
+              log << "flying to wrong number! TAKEOFF again!" << endl;
+            }
+            else {
+              log << "cannot regnoize image" << endl;
             }
           }
           else {
