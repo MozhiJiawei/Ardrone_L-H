@@ -39,7 +39,7 @@ private:
 
     _distance(double x, double y) : _x(x), _y(y) {}
   };
-  vector<vector<_distance>> _num_distance;
+  vector<vector<_distance> > _num_distance;
 
   RefPoseBr _br;
   tf::TransformListener _listener;

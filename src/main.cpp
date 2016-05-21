@@ -525,50 +525,50 @@ void* Control_loop(void* param) {
         }
         break;
       case SEARCHING:
-        LogCurTime();
+        LogCurTime(log);
         if (img_recon.ContourExist()) {
           log << "Contour Searched! ready to land" << endl;
           next_mode = LAND;
         }
         else {
           log << "Searing contour!" << endl;
-          if ((double)ros::Time::now().toSec() < control_time + 1) {
+          if ((double)ros::Time::now().toSec() < searching_time + 1) {
             forwardb = -0.1;
             leftr = 0;
             turnleftr = 0;
             upd = 0;
           }
-          else if ((double)ros::Time::now().toSec() < control_time + 1.5) {
+          else if ((double)ros::Time::now().toSec() < searching_time + 1.5) {
             forwardb = 0;
           }
-          else if ((double)ros::Time::now().toSec() < control_time + 2.5) {
+          else if ((double)ros::Time::now().toSec() < searching_time + 2.5) {
             forwardb = -0.1;
           }
-          else if ((double)ros::Time::now().toSec() < control_time + 3) {
+          else if ((double)ros::Time::now().toSec() < searching_time + 3) {
             forwardb = 0;
           }
-          else if ((double)ros::Time::now().toSec() < control_time + 4) {
+          else if ((double)ros::Time::now().toSec() < searching_time + 4) {
             forwardb = 0.1;
           }
-          else if ((double)ros::Time::now().toSec() < control_time + 4.5) {
+          else if ((double)ros::Time::now().toSec() < searching_time + 4.5) {
             forwardb = 0;
           }
-          else if ((double)ros::Time::now().toSec() < control_time + 5.5) {
+          else if ((double)ros::Time::now().toSec() < searching_time + 5.5) {
             forwardb = 0.1;
           }
-          else if ((double)ros::Time::now().toSec() < control_time + 6) {
+          else if ((double)ros::Time::now().toSec() < searching_time + 6) {
             forwardb = 0;
           }
-          else if ((double)ros::Time::now().toSec() < control_time + 7) {
+          else if ((double)ros::Time::now().toSec() < searching_time + 7) {
             forwardb = 0.1;
           }
-          else if ((double)ros::Time::now().toSec() < control_time + 7.5) {
+          else if ((double)ros::Time::now().toSec() < searching_time + 7.5) {
             forwardb = 0;
           }
-          else if ((double)ros::Time::now().toSec() < control_time + 8.5) {
+          else if ((double)ros::Time::now().toSec() < searching_time + 8.5) {
             forwardb = 0.1;
           }
-          else if ((double)ros::Time::now().toSec() < control_time + 9) {
+          else if ((double)ros::Time::now().toSec() < searching_time + 9) {
             forwardb = 0;
           }
         }

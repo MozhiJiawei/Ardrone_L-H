@@ -88,7 +88,7 @@ ArdroneTf::ArdroneTf(const char* file_name) : _file_path(file_name) {
   dis_five.push_back(_distance(0, 0)); //5->3
   dis_five.push_back(_distance(0, 0)); //5->4
   dis_five.push_back(_distance(0, 0)); //5->5
-  dis_five.push_back(_distance(-2,8, 0.6)); //5->6
+  dis_five.push_back(_distance(-2.8, 0.6)); //5->6
   dis_five.push_back(_distance(0, 0)); //5->7
   dis_five.push_back(_distance(0, 0)); //5->8
   dis_five.push_back(_distance(0, 0)); //5->9
@@ -298,9 +298,9 @@ double ArdroneTf::YDiff() {
 //
 //}
 
-int ArdroneTf::get_cur_number() {
-  return _cur_number;
-}
+//int ArdroneTf::get_cur_number() {
+//  return _cur_number;
+//}
 
 void ArdroneTf::LogCurTime() {
   time_t timep;
