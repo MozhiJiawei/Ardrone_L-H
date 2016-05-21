@@ -13,11 +13,28 @@ using namespace std;
 
 ImgRecon::ImgRecon(IplImage *img)
 {
+#ifdef WIN32
+  {
   SamLoca[0]="samples\\sample0.bmp";SamLoca[5]="samples\\sample5.bmp";//样本存放地址
   SamLoca[1]="samples\\sample1.bmp";SamLoca[6]="samples\\sample6.bmp";
   SamLoca[2]="samples\\sample2.bmp";SamLoca[7]="samples\\sample7.bmp";
   SamLoca[3]="samples\\sample3.bmp";SamLoca[8]="samples\\sample8.bmp";
   SamLoca[4]="samples\\sample4.bmp";SamLoca[9]="samples\\sample9.bmp";
+  };
+#else
+  {
+  SamLoca[0]="/home/mozhi/catkin_ws/src/Ardrone_L-H/src/samples/sample0.bmp";//样本存放地址
+  SamLoca[5]="/home/mozhi/catkin_ws/src/Ardrone_L-H/src/samples/sample5.bmp";
+  SamLoca[1]="/home/mozhi/catkin_ws/src/Ardrone_L-H/src/samples/sample1.bmp";
+  SamLoca[6]="/home/mozhi/catkin_ws/src/Ardrone_L-H/src/samples/sample6.bmp";
+  SamLoca[2]="/home/mozhi/catkin_ws/src/Ardrone_L-H/src/samples/sample2.bmp";
+  SamLoca[7]="/home/mozhi/catkin_ws/src/Ardrone_L-H/src/samples/sample7.bmp";
+  SamLoca[3]="/home/mozhi/catkin_ws/src/Ardrone_L-H/src/samples/sample3.bmp";
+  SamLoca[8]="/home/mozhi/catkin_ws/src/Ardrone_L-H/src/samples/sample8.bmp";
+  SamLoca[4]="/home/mozhi/catkin_ws/src/Ardrone_L-H/src/samples/sample4.bmp";
+  SamLoca[9]="/home/mozhi/catkin_ws/src/Ardrone_L-H/src/samples/sample9.bmp";
+  };
+#endif;
   src = cvCreateImage( cvSize(640,360), IPL_DEPTH_8U, 1);
   Center.x = 320;
   Center.y = 180;
@@ -93,7 +110,7 @@ void ImgRecon::ReInit(IplImage *img)
     }		
   }
 //cvNamedWindow("dst1", 1);
-cvNamedWindow("src", 1);
+//cvNamedWindow("src", 1);
   if(ConArea > 10000)//如果面积太小说明没有找到纸片，可以不进行后续处理
   {
     ConExist = 1;		
@@ -201,7 +218,7 @@ cvCircle( img, cvPointFrom32f(corners1[i]), 7, cvScalar(255,255,255),3);  //
   
   
   cvCircle( img, Center, 7, cvScalar(255,0,255),3);//在轮廓中心画圆
-cvShowImage("src",src);//show src, dst1
+//cvShowImage("src",src);//show src, dst1
 //cvShowImage("dst1",dst1);
   //释放不需要的内存
   //cvReleaseImage(&src);
@@ -306,7 +323,7 @@ int ImgRecon::NumDetec(const IplImage* dst)
           tempdiff++;
       }
     }
-    cout<<"与"<<k<<"的样本差别像素数为："<<tempdiff<<endl;
+    //cout<<"与"<<k<<"的样本差别像素数为："<<tempdiff<<endl;
     if(tempdiff<mindiff) 
     {
       mindiff=tempdiff;
@@ -315,7 +332,7 @@ int ImgRecon::NumDetec(const IplImage* dst)
     tempdiff = 0;
     cvReleaseImage(&sam);
   }
-  if(mindiff>1300) return -1;
+  if(mindiff>1500) return -1;
   return rnum;
 }
 
@@ -368,5 +385,5 @@ bool ImgRecon::ContourExist()
 //>0,left higher;<0,right higher
 float ImgRecon::GetTopPointDiff()
 {
-  return corners1[1].y-corners1[0].y;
+  return asin((corners1[1].y-corners1[0].y)/sqrt((corners1[0].x-corners1[1].x)*(corners1[0].x-corners1[1].x)+(corners1[0].x-corners1[1].x)*(corners1[1].y-corners1[0].y)));
 }

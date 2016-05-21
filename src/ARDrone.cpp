@@ -361,7 +361,7 @@ bool ARDrone::move(float lr, float fb, float ud, float w) {
   twist_msg.angular.y=0.0;
   twist_msg.angular.z= w;
   pub_twist.publish(twist_msg);
-  ROS_INFO("Moving");
+  //ROS_INFO("Moving");
   return true;
 }
 
@@ -377,7 +377,7 @@ bool ARDrone::moveLeft(float speed) {
   twist_msg.angular.y=0.0;
   twist_msg.angular.z=0.0;
   pub_twist.publish(twist_msg);
-  ROS_INFO("Moving");
+  //ROS_INFO("Moving");
   return true;
 }
 
@@ -393,7 +393,7 @@ bool ARDrone::moveRight(float speed) {
   twist_msg.angular.y=0.0;
   twist_msg.angular.z=0.0;
   pub_twist.publish(twist_msg);
-  ROS_INFO("Moving");
+  //ROS_INFO("Moving");
   return true;
 }
 
@@ -409,7 +409,7 @@ bool ARDrone::moveForward(float speed) {
   twist_msg.angular.y=0.0;
   twist_msg.angular.z=0.0;
   pub_twist.publish(twist_msg);
-  ROS_INFO("Moving");
+  //ROS_INFO("Moving");
   return true;
 }
 
@@ -425,7 +425,7 @@ bool ARDrone::moveBackward(float speed) {
   twist_msg.angular.y=0.0;
   twist_msg.angular.z=0.0;
   pub_twist.publish(twist_msg);
-  ROS_INFO("Moving");
+  //ROS_INFO("Moving");
   return true;
 }
 
@@ -441,7 +441,7 @@ bool ARDrone::moveUp(float speed) {
   twist_msg.angular.y=0.0;
   twist_msg.angular.z=0.0;
   pub_twist.publish(twist_msg);
-  ROS_INFO("Moving");
+  //ROS_INFO("Moving");
   return true;
 }
 
@@ -457,7 +457,7 @@ bool ARDrone::moveDown(float speed) {
   twist_msg.angular.y=0.0;
   twist_msg.angular.z=0.0;
   pub_twist.publish(twist_msg);
-  ROS_INFO("Moving");
+  //ROS_INFO("Moving");
   return true;
 }
 
@@ -472,7 +472,7 @@ bool ARDrone::turnLeft(float speed) {
   twist_msg.angular.y=0.0;
   twist_msg.angular.z=  speed;
   pub_twist.publish(twist_msg);
-  ROS_INFO("Moving");
+  //ROS_INFO("Moving");
   return true;
   //return ARDrone::sendTurnLeft(speed);
   return true;
@@ -490,7 +490,7 @@ bool ARDrone::turnRight(float speed) {
   twist_msg.angular.y=0.0;
   twist_msg.angular.z= - speed;
   pub_twist.publish(twist_msg);
-  ROS_INFO("Moving");
+  //ROS_INFO("Moving");
   return true;
   return true;
 }

@@ -9,6 +9,7 @@
 #pragma once
 #endif // _MSC_VER > 1000
 
+#include <math.h>
 #include <highgui.h>
 #include <cv.h>
 #include <string>
@@ -16,14 +17,14 @@ using namespace std;
 class ImgRecon  
 {
   public:
-    ImgRecon(IplImage *img);//可以直接传彩图
+    ImgRecon(IplImage *img);//give a colorful picture
     virtual ~ImgRecon();
-    void ReInit(IplImage *img);//更改下一张图片
-    int GetNumber();//获得图片中的数字，-2未处理，-1找不到
-    CvPoint GetCenterPoint();//获得轮廓中心
-    int GetContourArea();//获取轮廓面积
-    bool ContourExist();//轮廓存在与否
-    float GetTopPointDiff();//>0,left higher;<0,right higher
+    void ReInit(IplImage *img);//change picture
+    int GetNumber();//get the number in the picture,-1 is not recon
+    CvPoint GetCenterPoint();//get contour center
+    int GetContourArea();//get contour area
+    bool ContourExist();//is contour exist?
+    float GetTopPointDiff();//>0,left higher;<0,right higher;return arcsin
 
   private:
     int NumResult;//判断所得数字
