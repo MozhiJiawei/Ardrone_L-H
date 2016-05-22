@@ -35,6 +35,7 @@ class VideoRecorder {
     bool _recording;
 
     ImgRGB curImg;
+    double curTime;
   public:
     VideoRecorder(const char* tsPath, const char* videoPath);
     virtual ~VideoRecorder();
@@ -47,8 +48,8 @@ class VideoRecorder {
     void lock();
     void unlock();
 
-    void getImage(cv::Mat& img);
-    void getImage(ImgRGB& img);
+    void getImage(cv::Mat& img, double& tm);
+    void getImage(ImgRGB& img, double& tm);
     void start();
     void loop();
     void end();

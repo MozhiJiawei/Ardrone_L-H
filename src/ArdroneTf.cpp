@@ -160,6 +160,17 @@ ArdroneTf::ArdroneTf(const char* file_name) : _file_path(file_name) {
   _num_distance.push_back(_distance(-0.6, -2.6));
   _num_distance.push_back(_distance(-3.45, 0.9));
   */
+  _travel_path.push_back(0);
+  _travel_path.push_back(1);
+  _travel_path.push_back(2);
+  _travel_path.push_back(3);
+  _travel_path.push_back(4);
+  _travel_path.push_back(5);
+  _travel_path.push_back(6);
+  _travel_path.push_back(5);
+  _travel_path.push_back(7);
+  _travel_path.push_back(8);
+  _travel_path.push_back(9);
   _log.open(file_name);
   if (!_log) {
     cout << "ArdrnineTf cannot open file to log" << endl;
@@ -173,11 +184,12 @@ ArdroneTf::ArdroneTf(const char* file_name) : _file_path(file_name) {
 ArdroneTf::~ArdroneTf() {}
 
 tf::StampedTransform ArdroneTf::get_transform(const char* frame1,
-  const char* frame2) {
+  const char* frame2, double tm = (double)ros::Time::now().toSec()) {
   
   tf::StampedTransform trans;
   try {
-    ros::Time now = ros::Time::now();
+    //ros::Time now = ros::Time::now();
+    ros::Time now(tm);
     _listener.waitForTransform(frame1, frame2,
       now, ros::Duration(1.0));
 
@@ -193,8 +205,8 @@ tf::StampedTransform ArdroneTf::get_transform(const char* frame1,
   return trans;
 }
 
-void ArdroneTf::SetRefPose(double angle_offset) {
-  _ref_trans = this->get_transform("odom", "ardrone_base_link");
+void ArdroneTf::SetRefPose(double angle_offset, double img_tm) {
+  _ref_trans = this->get_transform("odom", "ardrone_base_link", img_tm);
   tf::Quaternion ref_qua = _ref_trans.getRotation();
   double yaw_plane, pitch, roll;
   _ref_trans.getBasis().getEulerYPR(yaw_plane, pitch, roll);
@@ -229,10 +241,10 @@ void ArdroneTf::GetDiff(double& error_x, double& error_y,
   double yaw, yaw_ref, pitch, roll;
   ref_to_base = get_transform("ref_pose", "ardrone_base_link");
   error_x = -ref_to_base.getOrigin().x() - 
-      _num_distance[_cur_number][_tar_number]._x;
+      _num_distance[_cur_number][*_path_itr]._x;
 
   error_y = -ref_to_base.getOrigin().y() - 
-      _num_distance[_cur_number][_tar_number]._y;
+      _num_distance[_cur_number][*_path_itr]._y;
 
   // Two ways to calculate error_turn
   ref_to_base.getBasis().getEulerYPR(error_turn, pitch, roll);
@@ -260,49 +272,27 @@ void ArdroneTf::GetDiff(double& error_x, double& error_y,
 
 }
 
-double ArdroneTf::YawDiff() {
-  double yaw, yaw_ref, yaw_diff;
-  double pitch, roll;
-  this->get_transform("odom", "ardrone_base_link").getBasis().getEulerYPR(
-      yaw, pitch, roll);
-
-  _ref_trans.getBasis().getEulerYPR(yaw_ref, pitch, roll);
-  //mat.getEulerYPR(yaw_ref, pitch, roll);
-  yaw_diff = yaw - yaw_ref;
-  if (yaw_diff < -PI) {
-    yaw_diff += 2 * PI;
+void ArdroneTf::SetPathItr(int number) {
+  // Find the next path after number - 1 
+  if (number == 1) {
+    _path_itr = _travel_path.begin();
+    _path_itr++;
   }
-  else if (yaw_diff > PI) {
-    yaw_diff -= 2 * PI;
+  else {
+    vector<int>::const_iterator itr;
+    int ref = 0;
+    for (itr = _travel_path.begin(); itr != _travel_path.end(); ++itr) {
+      if (ref == number - 2 && *itr == number - 1) {
+        _path_itr = itr;
+        _path_itr++;
+        break;
+      }
+      else if (*itr == ref + 1) {
+        ref++;
+      }
+    }
   }
-  //Log Info
-  LogCurTime();
-  _log << "pitch_ref = " << pitch << "  roll_ref = " << roll << endl;
-  _log << "yaw = " << yaw << "  yaw_ref = " << yaw_ref << endl;
-  return yaw_diff;
 }
-
-double ArdroneTf::XDiff() {
-  return - this->get_transform("ref_pose", "ardrone_base_link").getOrigin().x()
-      - _num_distance[_cur_number][_tar_number]._x;
-
-}
-
-double ArdroneTf::YDiff() {
-  return - this->get_transform("ref_pose", "ardrone_base_link").getOrigin().y() 
-      - _num_distance[_cur_number][_tar_number]._y;
-
-}
-
-//void ArdroneTf::SetRefQuaternion() {
-//  _ground_quaternion = 
-//      this->get_transform("odom", "ardrone_base_link").getRotation();
-//
-//}
-
-//int ArdroneTf::get_cur_number() {
-//  return _cur_number;
-//}
 
 void ArdroneTf::LogCurTime() {
   time_t timep;

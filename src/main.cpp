@@ -154,6 +154,7 @@ void* Control_loop(void* param) {
   ///////////////////////////////////////////////////////////
   double takeoff_time;
   double searching_time;
+  double img_time;
   clock_t pid_stable_time;
   clock_t landing_time;
 
@@ -327,7 +328,7 @@ void* Control_loop(void* param) {
       videoreader.newframe = false;
       cout << "Battery:" << thread.navdata.batteryPercent << endl;
 
-      videoreader.getImage(imgmat);
+      videoreader.getImage(imgmat, img_time);
       *imgsrc = imgmat;
       img_recon.ReInit(imgsrc);
       switch (cur_mode) {
@@ -335,10 +336,12 @@ void* Control_loop(void* param) {
         LogCurTime(log);
         if (cmdreader._is_reset) {
           drone_tf._tar_number = 1;
+          drone_tf.SetPathItr(1);
           cmdreader._is_reset = false;
         }
         else {
           drone_tf._tar_number++;
+          drone_tf._path_itr++;
         }
         if (drone_tf._tar_number < 10) {
           log << "ReStart! Next target is " << drone_tf._tar_number
@@ -358,11 +361,8 @@ void* Control_loop(void* param) {
       case TAKEOFF:
         LogCurTime(log);
         if (img_recon.ContourExist()) {
-          //cout << "conter found" << endl;
           centerx = img_recon.GetCenterPoint().x;
           centery = img_recon.GetCenterPoint().y;
-          //log << "center founded: x = " << centerx
-          //  << "  y = " << centery << endl;
 
           CLIP3(10.0, centerx, 590.0);
           CLIP3(10.0, centery, 350.0);
@@ -412,12 +412,15 @@ void* Control_loop(void* param) {
               if ((clock() - pid_stable_time) / CLOCKS_PER_SEC * 1000
                   > 500 && img_recon.GetNumber() != -1) {
 
-                log << "TAKEOFF Complete! Current Number is" 
+                log << "TAKEOFF Complete! Current Number is " 
                   << img_recon.GetNumber() << endl 
-                  << "Start Flying!" << endl;
+                  << "  Start Flying! to " << *(drone_tf._path_itr) << endl;
                 
                 drone_tf._cur_number = img_recon.GetNumber();
-                drone_tf.SetRefPose(errorturn);
+                drone_tf.SetRefPose(errorturn, img_time);
+                log << "Referance TimeStamp: " << img_time << endl;
+                //waiting till ref_pose set
+                usleep(150000);
                 next_mode = FLYING;
                 errorx = 0;
                 errory = 0;
@@ -455,9 +458,7 @@ void* Control_loop(void* param) {
         lasterrorx = errorx;
         lasterrory = errory;
         drone_tf.GetDiff(errorx, errory, errorturn);
-        //errorx = drone_tf.XDiff();
-        //errory = drone_tf.YDiff();
-        //vk to be set.
+
         targetvx = -vk * (2 * errorx - lasterrorx) * 600;
         targetvy = -vk * (2 * errory - lasterrory) * 600;
         if (errorx > 80 || errorx < -80) {
@@ -472,7 +473,6 @@ void* Control_loop(void* param) {
         leftr = pidVY.getOutput(targetvy - thread.navdata.vy, 0.5);
         leftr /= 15000;        forwardb /= 15000;
 
-        //errorturn = -drone_tf.YawDiff();
         turnleftr = errorturn * 10;
 
         CLIP3(-0.1, leftr, 0.1);
@@ -482,8 +482,7 @@ void* Control_loop(void* param) {
 
         if (abs(errorx) < 0.2 && abs(errory) < 0.2) {
           log << "Flying! Getting close!" << endl;
-          /*
-#ifdef Odo_Test
+#if Odo_Test
           if (abs(errorx) < 0.05 && abs(errory) < 0.05) {
             log << "Flying Arrived!!" << endl;
             drone.hover();
@@ -492,7 +491,6 @@ void* Control_loop(void* param) {
             next_mode = STOP;
           }
 #else
-*/
           if (img_recon.ContourExist()) {
             log << "Counter found, ready to land" << endl;
             next_mode = LAND;
@@ -516,7 +514,7 @@ void* Control_loop(void* param) {
               errory = 0;
             }
           }
-//#endif
+#endif
         }
         else {
           log << "Flying" << endl;
@@ -623,6 +621,13 @@ void* Control_loop(void* param) {
                 while ((double)ros::Time::now().toSec() < landing_time + 6);
                 next_mode = START;
               }
+            }
+            else if (img_recon.GetNumber() == *(drone_tf._path_itr)) {
+              next_mode = TAKEOFF;
+              drone_tf._path_itr++;
+              log << "Flying to Path Number " << *(drone_tf._path_itr) 
+                  << "  Complete!!" << endl;
+
             }
             else if (img_recon.GetNumber() != -1) {
               next_mode = TAKEOFF;

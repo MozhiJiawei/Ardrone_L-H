@@ -23,12 +23,11 @@ public:
   ArdroneTf(const char* file_name);
   virtual ~ArdroneTf();
 
-  void SetRefPose(double angle_offset);
+  void SetRefPose(double angle_offset, double img_tm);
   //void SetRefQuaternion();
   void GetDiff(double& error_x, double& error_y, double& error_turn);
-  double YawDiff();
-  double XDiff();
-  double YDiff();
+  void SetPathItr(int number);
+  vector<int>::const_iterator _path_itr;
   int _cur_number;
   int _tar_number;
 
@@ -40,6 +39,7 @@ private:
     _distance(double x, double y) : _x(x), _y(y) {}
   };
   vector<vector<_distance> > _num_distance;
+  vector<int> _travel_path;
 
   RefPoseBr _br;
   tf::TransformListener _listener;
@@ -49,7 +49,8 @@ private:
   const char* _file_path;
   ofstream _log;
 
-  tf::StampedTransform get_transform(const char* frame1, const char* frame2);
+  tf::StampedTransform get_transform(const char* frame1, const char* frame2,
+    double tm = (double)ros::Time::now().toSec());
   void LogCurTime();
 };
 

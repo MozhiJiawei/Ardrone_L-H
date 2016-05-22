@@ -43,6 +43,7 @@ void VideoRecorder::addBack(double tm, const cv::Mat& mat) {
   timeStamp.push_back(tm);
   vecImg.push_back(pImg);
   cloneImg(*pImg, curImg);
+  curTime = tm;
   pthread_cond_signal(&_cond);
   pthread_mutex_unlock(&_mutex);
   //delete pImg;
@@ -66,15 +67,17 @@ bool VideoRecorder::popFront(double& tm, ImgRGB& img) {
   return res;
 }
 
-void VideoRecorder::getImage(cv::Mat &img){
+void VideoRecorder::getImage(cv::Mat &img, double& tm){
   pthread_mutex_lock(&_mutex);
   cv::Mat tmpImg(curImg.m, curImg.n, CV_8UC3, curImg.data);
+  tm = curTime;
   img = tmpImg.clone();
   pthread_mutex_unlock(&_mutex);
 }
 
-void VideoRecorder::getImage(ImgRGB &img){
+void VideoRecorder::getImage(ImgRGB &img, double& tm){
   pthread_mutex_lock(&_mutex);
+  tm = curTime;
   cloneImg(curImg, img);
   pthread_mutex_unlock(&_mutex);
 }
