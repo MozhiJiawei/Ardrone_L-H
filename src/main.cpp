@@ -46,7 +46,7 @@ using namespace std;
 
 #define Test 0
 #define Test_tf_yaw 0
-#define Odo_Test 1
+#define Odo_Test 0
 
 static int mGrids = 5;
 static int nGrids = 6;
@@ -403,9 +403,9 @@ void* Control_loop(void* param) {
           CLIP3(-0.1, leftr, 0.1);
           CLIP3(-0.1, forwardb, 0.1);
           CLIP3(-0.2, upd, 0.2);
-          CLIP3(-0.1, turnleftr, 0.1);
+          CLIP3(-0.15, turnleftr, 0.15);
 
-          if (abs(errorx) < 30 && abs(errory) < 30 && abs(errorturn) < 0.08) {
+          if (abs(errorx) < 30 && abs(errory) < 30 && abs(errorturn) < 0.10) {
             turnleftr = 0;
             if (upd == 0) {
               cout << img_recon.GetNumber() << endl;
@@ -413,7 +413,8 @@ void* Control_loop(void* param) {
                   > 500 && img_recon.GetNumber() != -1) {
 
                 log << "TAKEOFF Complete! Current Number is" 
-                  << img_recon.GetNumber() << "Start Flying!" << endl;
+                  << img_recon.GetNumber() << endl 
+                  << "Start Flying!" << endl;
                 
                 drone_tf._cur_number = img_recon.GetNumber();
                 drone_tf.SetRefPose(errorturn);
@@ -477,10 +478,11 @@ void* Control_loop(void* param) {
         CLIP3(-0.1, leftr, 0.1);
         CLIP3(-0.1, forwardb, 0.1);
         upd = 0;
-        CLIP3(-0.1, turnleftr, 0.1);
+        CLIP3(-0.15, turnleftr, 0.15);
 
         if (abs(errorx) < 0.2 && abs(errory) < 0.2) {
           log << "Flying! Getting close!" << endl;
+          /*
 #ifdef Odo_Test
           if (abs(errorx) < 0.05 && abs(errory) < 0.05) {
             log << "Flying Arrived!!" << endl;
@@ -490,6 +492,7 @@ void* Control_loop(void* param) {
             next_mode = STOP;
           }
 #else
+*/
           if (img_recon.ContourExist()) {
             log << "Counter found, ready to land" << endl;
             next_mode = LAND;
@@ -508,12 +511,12 @@ void* Control_loop(void* param) {
             else {
               log << "Find nothing! Start Searching!" << endl;
               next_mode = SEARCHING;
-              searching_time = (double)ros::time::now().toSec();
+              searching_time = (double)ros::Time::now().toSec();
               errorx = 0;
               errory = 0;
             }
           }
-#endif
+//#endif
         }
         else {
           log << "Flying" << endl;
@@ -533,6 +536,7 @@ void* Control_loop(void* param) {
         else {
           log << "Searing contour!" << endl;
           if ((double)ros::Time::now().toSec() < searching_time + 1) {
+            log << "back" << endl;
             forwardb = -0.1;
             leftr = 0;
             turnleftr = 0;
@@ -542,30 +546,35 @@ void* Control_loop(void* param) {
             forwardb = 0;
           }
           else if ((double)ros::Time::now().toSec() < searching_time + 2.5) {
+            log << "back" <<endl;
             forwardb = -0.1;
           }
           else if ((double)ros::Time::now().toSec() < searching_time + 3) {
             forwardb = 0;
           }
           else if ((double)ros::Time::now().toSec() < searching_time + 4) {
+            log << "forward" << endl;
             forwardb = 0.1;
           }
           else if ((double)ros::Time::now().toSec() < searching_time + 4.5) {
             forwardb = 0;
           }
           else if ((double)ros::Time::now().toSec() < searching_time + 5.5) {
+            log << "forward" << endl;
             forwardb = 0.1;
           }
           else if ((double)ros::Time::now().toSec() < searching_time + 6) {
             forwardb = 0;
           }
           else if ((double)ros::Time::now().toSec() < searching_time + 7) {
+            log << "forward" << endl;
             forwardb = 0.1;
           }
           else if ((double)ros::Time::now().toSec() < searching_time + 7.5) {
             forwardb = 0;
           }
           else if ((double)ros::Time::now().toSec() < searching_time + 8.5) {
+            log << "forward" << endl;
             forwardb = 0.1;
           }
           else if ((double)ros::Time::now().toSec() < searching_time + 9) {

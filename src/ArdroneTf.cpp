@@ -15,7 +15,7 @@ ArdroneTf::ArdroneTf(const char* file_name) : _file_path(file_name) {
   dis_zero.push_back(_distance(0, 0)); //0->0
   dis_zero.push_back(_distance(1.9, -1.83)); //0->1
   dis_zero.push_back(_distance(0, 0)); //0->2
-  dis_zero.push_back(_distance(0, 0)); //0->3
+  dis_zero.push_back(_distance(2.73, -0.25)); //0->3
   dis_zero.push_back(_distance(0, 0)); //0->4
   dis_zero.push_back(_distance(0, 0)); //0->5
   dis_zero.push_back(_distance(0, 0)); //0->6
@@ -28,7 +28,7 @@ ArdroneTf::ArdroneTf(const char* file_name) : _file_path(file_name) {
   vector<_distance> dis_one;
   dis_one.push_back(_distance(0, 0)); //1->0
   dis_one.push_back(_distance(0, 0)); //1->1
-  dis_one.push_back(_distance(0.2, 3.3)); //1->2
+  dis_one.push_back(_distance(0.05, 3.0)); //1->2 0.05  3.3
   dis_one.push_back(_distance(0, 0)); //1->3
   dis_one.push_back(_distance(0, 0)); //1->4
   dis_one.push_back(_distance(0, 0)); //1->5
@@ -55,10 +55,10 @@ ArdroneTf::ArdroneTf(const char* file_name) : _file_path(file_name) {
   // 3:
   vector<_distance> dis_three;
   dis_three.push_back(_distance(0, 0)); //3->0
-  dis_three.push_back(_distance(0, 0)); //3->1
+  dis_three.push_back(_distance(-0.85, -1.65)); //3->1
   dis_three.push_back(_distance(0, 0)); //3->2
   dis_three.push_back(_distance(0, 0)); //3->3
-  dis_three.push_back(_distance(1.9, -1.6)); //3->4
+  dis_three.push_back(_distance(2.0, -1.5)); //3->4 1.9  -1.6
   dis_three.push_back(_distance(0, 0)); //3->5
   dis_three.push_back(_distance(0, 0)); //3->6
   dis_three.push_back(_distance(0, 0)); //3->7
@@ -217,6 +217,8 @@ void ArdroneTf::SetRefPose(double angle_offset) {
 
   _log << "yaw = " << yaw_plane << " pitch = " 
        << pitch << " roll = " << roll << endl;
+
+  _log << "angle_offset = " << angle_offset << endl;
 
 }
 
