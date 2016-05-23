@@ -360,6 +360,7 @@ void* Control_loop(void* param) {
         break;
       case TAKEOFF:
         LogCurTime(log);
+        log << "cur timestamp is  " << img_time << endl;
         if (img_recon.ContourExist()) {
           centerx = img_recon.GetCenterPoint().x;
           centery = img_recon.GetCenterPoint().y;

@@ -78,6 +78,7 @@ void ROSThread::imuCb(const sensor_msgs::Imu::ConstPtr imuPtr) {
 }
 
 void ROSThread::cmdCb(const keyboard::Key::ConstPtr msg) {
+  double tm;
   switch (msg->code) {
   case (keyboard::Key::KEY_g) :
     cmdRec.SetMode(START);
@@ -128,7 +129,7 @@ void ROSThread::cmdCb(const keyboard::Key::ConstPtr msg) {
     break;
   default:
     cv::Mat curImg;
-    vidRec.getImage(curImg);
+    vidRec.getImage(curImg, tm);
     if (!curImg.empty()) {
       cout << "save!" << endl;
       cmdRec.SaveImage(curImg);
