@@ -155,6 +155,7 @@ void* Control_loop(void* param) {
   double takeoff_time;
   double searching_time;
   double img_time;
+  int searching_scale = 1;
   clock_t pid_stable_time;
   clock_t landing_time;
 
@@ -449,6 +450,9 @@ void* Control_loop(void* param) {
           }
           else {
             upd = 0;
+            next_mode = SEARCHING;
+            searching_scale = 1;
+            searching_time = (double)ros::Time::now().toSec();
           }
           CLIP3(-0.2, upd, 0.2);
           log << "TAKEOFF! Cannot find conter, keep rising" << endl;
@@ -510,6 +514,7 @@ void* Control_loop(void* param) {
             else {
               log << "Find nothing! Start Searching!" << endl;
               next_mode = SEARCHING;
+              searching_scale = 1;
               searching_time = (double)ros::Time::now().toSec();
               errorx = 0;
               errory = 0;
@@ -534,51 +539,102 @@ void* Control_loop(void* param) {
         }
         else {
           log << "Searing contour!" << endl;
-          if ((double)ros::Time::now().toSec() < searching_time + 1) {
+          if ((double)ros::Time::now().toSec() < 
+            searching_time + 1 * searching_scale) {
+
             log << "back" << endl;
             forwardb = -0.1;
             leftr = 0;
             turnleftr = 0;
             upd = 0;
           }
-          else if ((double)ros::Time::now().toSec() < searching_time + 1.5) {
+          else if ((double)ros::Time::now().toSec() < 
+              searching_time + 1.5 * searching_scale) {
+
             forwardb = 0;
           }
-          else if ((double)ros::Time::now().toSec() < searching_time + 2.5) {
+          else if ((double)ros::Time::now().toSec() < 
+            searching_time + 2.5 * searching_scale) {
+
             log << "back" <<endl;
             forwardb = -0.1;
           }
-          else if ((double)ros::Time::now().toSec() < searching_time + 3) {
+          else if ((double)ros::Time::now().toSec() < 
+            searching_time + 3 * searching_scale) {
+
             forwardb = 0;
           }
-          else if ((double)ros::Time::now().toSec() < searching_time + 4) {
+          else if ((double)ros::Time::now().toSec() < 
+            searching_time + 4 * searching_scale) {
+
             log << "forward" << endl;
             forwardb = 0.1;
           }
-          else if ((double)ros::Time::now().toSec() < searching_time + 4.5) {
+          else if ((double)ros::Time::now().toSec() < 
+            searching_time + 4.5 * searching_scale) {
+
             forwardb = 0;
           }
-          else if ((double)ros::Time::now().toSec() < searching_time + 5.5) {
+          else if ((double)ros::Time::now().toSec() < 
+            searching_time + 5.5 * searching_scale) {
+
             log << "forward" << endl;
             forwardb = 0.1;
           }
-          else if ((double)ros::Time::now().toSec() < searching_time + 6) {
+          else if ((double)ros::Time::now().toSec() < 
+            searching_time + 6 * searching_scale) {
+
             forwardb = 0;
           }
-          else if ((double)ros::Time::now().toSec() < searching_time + 7) {
+          else if ((double)ros::Time::now().toSec() < 
+            searching_time + 7 * searching_scale) {
+
             log << "forward" << endl;
             forwardb = 0.1;
           }
-          else if ((double)ros::Time::now().toSec() < searching_time + 7.5) {
+          else if ((double)ros::Time::now().toSec() < 
+            searching_time + 7.5 * searching_scale) {
+
             forwardb = 0;
           }
-          else if ((double)ros::Time::now().toSec() < searching_time + 8.5) {
+          else if ((double)ros::Time::now().toSec() < 
+            searching_time + 8.5 * searching_scale) {
+            
             log << "forward" << endl;
             forwardb = 0.1;
           }
-          else if ((double)ros::Time::now().toSec() < searching_time + 9) {
+          else if ((double)ros::Time::now().toSec() < 
+            searching_time + 9 * searching_scale) {
+
             forwardb = 0;
           }
+          else if ((double)ros::Time::now().toSec() < 
+            searching_time + 9.5 * searching_scale) {
+
+            log << "backward" << endl;
+            forwardb = -0.1;
+          }
+          else if ((double)ros::Time::now().toSec() < 
+            searching_time + 10.5 * searching_scale) {
+
+            forwardb = 0;
+          }
+          else if ((double)ros::Time::now().toSec() < 
+            searching_time + 11 * searching_scale) {
+            
+            log << "backward" << endl;
+            forwardb = -0.1;
+          }
+          else if ((double)ros::Time::now().toSec() < 
+            searching_time + 12 * searching_scale) {
+
+            forwardb = 0;
+          }
+          else {
+            searching_time = (double)ros::Time::now().toSec();
+            searching_scale++;
+          }
+
         }
         break;
       case LAND: 
