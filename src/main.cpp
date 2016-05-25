@@ -450,10 +450,8 @@ void* Control_loop(void* param) {
           }
           else {
             upd = 0;
-            next_mode = SEARCHING;
-            searching_scale = 1;
-            searching_time = (double)ros::Time::now().toSec();
           }
+          forwardb = 0.1;
           CLIP3(-0.2, upd, 0.2);
           log << "TAKEOFF! Cannot find conter, keep rising" << endl;
         }
@@ -661,15 +659,17 @@ void* Control_loop(void* param) {
           forwardb = pidVX.getOutput(targetvx - thread.navdata.vx, 0.5);
           leftr = pidVY.getOutput(targetvy - thread.navdata.vy, 0.5);
           leftr /= 15000;        forwardb /= 15000;
+          errorturn = - img_recon.GetTopPointDiff();
+          turnleftr = errorturn * 10;
 
           CLIP3(-0.1, leftr, 0.1);
           CLIP3(-0.1, forwardb, 0.1);
           upd = 0;
-          turnleftr = 0;
           if (abs(errorx) < 30 && abs(errory) < 30) {
             cout << img_recon.GetNumber() << endl;
             if (img_recon.GetNumber() == drone_tf._tar_number) {
               if ((clock() - pid_stable_time) / CLOCKS_PER_SEC * 1000 > 500) {
+                turnleftr = 0;
                 drone.hover();
                 usleep(500000);
                 drone.land();
