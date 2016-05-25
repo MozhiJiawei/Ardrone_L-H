@@ -7,151 +7,151 @@
 
 #include "ArdroneTf.h"
 
-ArdroneTf::ArdroneTf(const char* file_name) : _file_path(file_name) {
+ArdroneTf::ArdroneTf(const char *file_name) : _file_path(file_name) {
   _cur_number = 0;
   _tar_number = 1;
   // 0:
   vector<_distance> dis_zero;
-  dis_zero.push_back(_distance(0, 0)); //0->0
-  dis_zero.push_back(_distance(1.9, -1.83)); //0->1
-  dis_zero.push_back(_distance(2.2, 1.45)); //0->2
-  dis_zero.push_back(_distance(2.73, -0.25)); //0->3
-  dis_zero.push_back(_distance(0, 0)); //0->4
-  dis_zero.push_back(_distance(0, 0)); //0->5
-  dis_zero.push_back(_distance(0, 0)); //0->6
-  dis_zero.push_back(_distance(0, 0)); //0->7
-  dis_zero.push_back(_distance(0, 0)); //0->8
-  dis_zero.push_back(_distance(0, 0)); //0->9
+  dis_zero.push_back(_distance(0, 0));        // 0->0
+  dis_zero.push_back(_distance(1.9, -1.83));  // 0->1
+  dis_zero.push_back(_distance(2.2, 1.45));   // 0->2
+  dis_zero.push_back(_distance(2.73, -0.25)); // 0->3
+  dis_zero.push_back(_distance(0, 0));        // 0->4
+  dis_zero.push_back(_distance(0, 0));        // 0->5
+  dis_zero.push_back(_distance(0, 0));        // 0->6
+  dis_zero.push_back(_distance(0, 0));        // 0->7
+  dis_zero.push_back(_distance(0, 0));        // 0->8
+  dis_zero.push_back(_distance(0, 0));        // 0->9
   _num_distance.push_back(dis_zero);
 
   // 1:
   vector<_distance> dis_one;
-  dis_one.push_back(_distance(0, 0)); //1->0
-  dis_one.push_back(_distance(0, 0)); //1->1
-  dis_one.push_back(_distance(0.05, 3.0)); //1->2 0.05  3.3
-  dis_one.push_back(_distance(0, 0)); //1->3
-  dis_one.push_back(_distance(2.8, 0.2)); //1->4
-  dis_one.push_back(_distance(0, 0)); //1->5
-  dis_one.push_back(_distance(0, 0)); //1->6
-  dis_one.push_back(_distance(0, 0)); //1->7
-  dis_one.push_back(_distance(0, 0)); //1->8
-  dis_one.push_back(_distance(0, 0)); //1->9
+  dis_one.push_back(_distance(0, 0));      // 1->0
+  dis_one.push_back(_distance(0, 0));      // 1->1
+  dis_one.push_back(_distance(0.05, 3.0)); // 1->2 0.05  3.3
+  dis_one.push_back(_distance(0, 0));      // 1->3
+  dis_one.push_back(_distance(2.8, 0.2));  // 1->4
+  dis_one.push_back(_distance(0, 0));      // 1->5
+  dis_one.push_back(_distance(0, 0));      // 1->6
+  dis_one.push_back(_distance(0, 0));      // 1->7
+  dis_one.push_back(_distance(0, 0));      // 1->8
+  dis_one.push_back(_distance(0, 0));      // 1->9
   _num_distance.push_back(dis_one);
 
   // 2:
   vector<_distance> dis_two;
-  dis_two.push_back(_distance(0, 0)); //2->0
-  dis_two.push_back(_distance(0, 0)); //2->1
-  dis_two.push_back(_distance(0, 0)); //2->2
-  dis_two.push_back(_distance(0.4, -1.6)); //2->3
-  dis_two.push_back(_distance(0, 0)); //2->4
-  dis_two.push_back(_distance(0, 0)); //2->5
-  dis_two.push_back(_distance(0, 0)); //2->6
-  dis_two.push_back(_distance(0, 0)); //2->7
-  dis_two.push_back(_distance(0, 0)); //2->8
-  dis_two.push_back(_distance(0, 0)); //2->9
+  dis_two.push_back(_distance(0, 0));      // 2->0
+  dis_two.push_back(_distance(0, 0));      // 2->1
+  dis_two.push_back(_distance(0, 0));      // 2->2
+  dis_two.push_back(_distance(0.4, -1.6)); // 2->3
+  dis_two.push_back(_distance(0, 0));      // 2->4
+  dis_two.push_back(_distance(0, 0));      // 2->5
+  dis_two.push_back(_distance(0, 0));      // 2->6
+  dis_two.push_back(_distance(0, 0));      // 2->7
+  dis_two.push_back(_distance(0, 0));      // 2->8
+  dis_two.push_back(_distance(0, 0));      // 2->9
   _num_distance.push_back(dis_two);
 
   // 3:
   vector<_distance> dis_three;
-  dis_three.push_back(_distance(0, 0)); //3->0
-  dis_three.push_back(_distance(-0.85, -1.65)); //3->1
-  dis_three.push_back(_distance(-0.6, 1.6)); //3->2
-  dis_three.push_back(_distance(0, 0)); //3->3
-  dis_three.push_back(_distance(2.0, -1.5)); //3->4 1.9  -1.6
-  dis_three.push_back(_distance(0, 0)); //3->5
-  dis_three.push_back(_distance(0, 0)); //3->6
-  dis_three.push_back(_distance(0, 0)); //3->7
-  dis_three.push_back(_distance(0, 0)); //3->8
-  dis_three.push_back(_distance(0, 0)); //3->9
+  dis_three.push_back(_distance(0, 0));         // 3->0
+  dis_three.push_back(_distance(-0.85, -1.65)); // 3->1
+  dis_three.push_back(_distance(-0.6, 1.6));    // 3->2
+  dis_three.push_back(_distance(0, 0));         // 3->3
+  dis_three.push_back(_distance(2.0, -1.5));    // 3->4 1.9  -1.6
+  dis_three.push_back(_distance(0, 0));         // 3->5
+  dis_three.push_back(_distance(0, 0));         // 3->6
+  dis_three.push_back(_distance(0, 0));         // 3->7
+  dis_three.push_back(_distance(0, 0));         // 3->8
+  dis_three.push_back(_distance(0, 0));         // 3->9
   _num_distance.push_back(dis_three);
 
- // 4:
+  // 4:
   vector<_distance> dis_four;
-  dis_four.push_back(_distance(0, 0)); //4->0
-  dis_four.push_back(_distance(0, 0)); //4->1
-  dis_four.push_back(_distance(0, 0)); //4->2
-  dis_four.push_back(_distance(0, 0)); //4->3
-  dis_four.push_back(_distance(0, 0)); //4->4
-  dis_four.push_back(_distance(2.96, 2.28)); //4->5
-  dis_four.push_back(_distance(0, 0)); //4->6
-  dis_four.push_back(_distance(0, 0)); //4->7
-  dis_four.push_back(_distance(0, 0)); //4->8
-  dis_four.push_back(_distance(0.75, 1.35)); //4->9
+  dis_four.push_back(_distance(0, 0));       // 4->0
+  dis_four.push_back(_distance(0, 0));       // 4->1
+  dis_four.push_back(_distance(0, 0));       // 4->2
+  dis_four.push_back(_distance(0, 0));       // 4->3
+  dis_four.push_back(_distance(0, 0));       // 4->4
+  dis_four.push_back(_distance(2.96, 2.28)); // 4->5
+  dis_four.push_back(_distance(0, 0));       // 4->6
+  dis_four.push_back(_distance(0, 0));       // 4->7
+  dis_four.push_back(_distance(0, 0));       // 4->8
+  dis_four.push_back(_distance(0.75, 1.35)); // 4->9
   _num_distance.push_back(dis_four);
 
   // 5:
   vector<_distance> dis_five;
-  dis_five.push_back(_distance(0, 0)); //5->0
-  dis_five.push_back(_distance(0, 0)); //5->1
-  dis_five.push_back(_distance(0, 0)); //5->2
-  dis_five.push_back(_distance(0, 0)); //5->3
-  dis_five.push_back(_distance(0, 0)); //5->4
-  dis_five.push_back(_distance(0, 0)); //5->5
-  dis_five.push_back(_distance(-2.8, 0.6)); //5->6
-  dis_five.push_back(_distance(2.07, 0.6)); //5->7
-  dis_five.push_back(_distance(0, 0)); //5->8
-  dis_five.push_back(_distance(0, 0)); //5->9
+  dis_five.push_back(_distance(0, 0));      // 5->0
+  dis_five.push_back(_distance(0, 0));      // 5->1
+  dis_five.push_back(_distance(0, 0));      // 5->2
+  dis_five.push_back(_distance(0, 0));      // 5->3
+  dis_five.push_back(_distance(0, 0));      // 5->4
+  dis_five.push_back(_distance(0, 0));      // 5->5
+  dis_five.push_back(_distance(-2.8, 0.6)); // 5->6
+  dis_five.push_back(_distance(2.07, 0.6)); // 5->7
+  dis_five.push_back(_distance(0, 0));      // 5->8
+  dis_five.push_back(_distance(0, 0));      // 5->9
   _num_distance.push_back(dis_five);
 
   // 6:
   vector<_distance> dis_six;
-  dis_six.push_back(_distance(0, 0)); //6->0
-  dis_six.push_back(_distance(0, 0)); //6->1
-  dis_six.push_back(_distance(-2.62, 0.3)); //6->2
-  dis_six.push_back(_distance(0, 0)); //6->3
-  dis_six.push_back(_distance(0, 0)); //6->4
-  dis_six.push_back(_distance(2.79, -0.5)); //6->5
-  dis_six.push_back(_distance(0, 0)); //6->6
-  dis_six.push_back(_distance(4.8, 0.1)); //6->7
-  dis_six.push_back(_distance(0, 0)); //6->8
-  dis_six.push_back(_distance(0, 0)); //6->9
+  dis_six.push_back(_distance(0, 0));       // 6->0
+  dis_six.push_back(_distance(0, 0));       // 6->1
+  dis_six.push_back(_distance(-2.62, 0.3)); // 6->2
+  dis_six.push_back(_distance(0, 0));       // 6->3
+  dis_six.push_back(_distance(0, 0));       // 6->4
+  dis_six.push_back(_distance(2.79, -0.5)); // 6->5
+  dis_six.push_back(_distance(0, 0));       // 6->6
+  dis_six.push_back(_distance(4.8, 0.1));   // 6->7
+  dis_six.push_back(_distance(0, 0));       // 6->8
+  dis_six.push_back(_distance(0, 0));       // 6->9
   _num_distance.push_back(dis_six);
 
   // 7:
   vector<_distance> dis_seven;
-  dis_seven.push_back(_distance(0, 0)); //7->0
-  dis_seven.push_back(_distance(0, 0)); //7->1
-  dis_seven.push_back(_distance(0, 0)); //7->2
-  dis_seven.push_back(_distance(0, 0)); //7->3
-  dis_seven.push_back(_distance(0, 0)); //7->4
-  dis_seven.push_back(_distance(0, 0)); //7->5
-  dis_seven.push_back(_distance(0, 0)); //7->6
-  dis_seven.push_back(_distance(0, 0)); //7->7
-  dis_seven.push_back(_distance(-0.6, -2.6)); //7->8
-  dis_seven.push_back(_distance(0, 0)); //7->9
+  dis_seven.push_back(_distance(0, 0));       // 7->0
+  dis_seven.push_back(_distance(0, 0));       // 7->1
+  dis_seven.push_back(_distance(0, 0));       // 7->2
+  dis_seven.push_back(_distance(0, 0));       // 7->3
+  dis_seven.push_back(_distance(0, 0));       // 7->4
+  dis_seven.push_back(_distance(0, 0));       // 7->5
+  dis_seven.push_back(_distance(0, 0));       // 7->6
+  dis_seven.push_back(_distance(0, 0));       // 7->7
+  dis_seven.push_back(_distance(-0.6, -2.6)); // 7->8
+  dis_seven.push_back(_distance(0, 0));       // 7->9
   _num_distance.push_back(dis_seven);
 
   // 8:
   vector<_distance> dis_eight;
-  dis_eight.push_back(_distance(0, 0)); //8->0
-  dis_eight.push_back(_distance(0, 0)); //8->1
-  dis_eight.push_back(_distance(0, 0)); //8->2
-  dis_eight.push_back(_distance(0, 0)); //8->3
-  dis_eight.push_back(_distance(0, 0)); //8->4
-  dis_eight.push_back(_distance(-1.3, 2.05)); //8->5
-  dis_eight.push_back(_distance(0, 0)); //8->6
-  dis_eight.push_back(_distance(0, 0)); //8->7
-  dis_eight.push_back(_distance(0, 0)); //8->8
-  dis_eight.push_back(_distance(-3.45, 0.9)); //8->9
+  dis_eight.push_back(_distance(0, 0));       // 8->0
+  dis_eight.push_back(_distance(0, 0));       // 8->1
+  dis_eight.push_back(_distance(0, 0));       // 8->2
+  dis_eight.push_back(_distance(0, 0));       // 8->3
+  dis_eight.push_back(_distance(0, 0));       // 8->4
+  dis_eight.push_back(_distance(-1.3, 2.05)); // 8->5
+  dis_eight.push_back(_distance(0, 0));       // 8->6
+  dis_eight.push_back(_distance(0, 0));       // 8->7
+  dis_eight.push_back(_distance(0, 0));       // 8->8
+  dis_eight.push_back(_distance(-3.45, 0.9)); // 8->9
   _num_distance.push_back(dis_eight);
 
   // 9:
   vector<_distance> dis_nine;
-  dis_nine.push_back(_distance(0, 0)); //9->0
-  dis_nine.push_back(_distance(0, 0)); //9->1
-  dis_nine.push_back(_distance(0, 0)); //9->2
-  dis_nine.push_back(_distance(0, 0)); //9->3
-  dis_nine.push_back(_distance(0, 0)); //9->4
-  dis_nine.push_back(_distance(2.0, 1.05)); //9->5
-  dis_nine.push_back(_distance(0, 0)); //9->6
-  dis_nine.push_back(_distance(0, 0)); //9->7
-  dis_nine.push_back(_distance(0, 0)); //9->8
-  dis_nine.push_back(_distance(0, 0)); //9->9
+  dis_nine.push_back(_distance(0, 0));      // 9->0
+  dis_nine.push_back(_distance(0, 0));      // 9->1
+  dis_nine.push_back(_distance(0, 0));      // 9->2
+  dis_nine.push_back(_distance(0, 0));      // 9->3
+  dis_nine.push_back(_distance(0, 0));      // 9->4
+  dis_nine.push_back(_distance(2.0, 1.05)); // 9->5
+  dis_nine.push_back(_distance(0, 0));      // 9->6
+  dis_nine.push_back(_distance(0, 0));      // 9->7
+  dis_nine.push_back(_distance(0, 0));      // 9->8
+  dis_nine.push_back(_distance(0, 0));      // 9->9
   _num_distance.push_back(dis_nine);
-/*
+  /*
   _num_distance.push_back(_distance(1.9, -1.83));
-  _num_distance.push_back(_distance(0.2, 3.3));  
+  _num_distance.push_back(_distance(0.2, 3.3));
   _num_distance.push_back(_distance(0.4, -1.6));
   _num_distance.push_back(_distance(1.9, -1.6));
   _num_distance.push_back(_distance(2.96, 2.28));
@@ -184,30 +184,27 @@ ArdroneTf::ArdroneTf(const char* file_name) : _file_path(file_name) {
 
 ArdroneTf::~ArdroneTf() {}
 
-tf::StampedTransform ArdroneTf::get_transform(const char* frame1,
-  const char* frame2, double tm) {
-  
+tf::StampedTransform ArdroneTf::get_transform(const char *frame1,
+                                              const char *frame2, double tm) {
+
   /*
   if(abs(tm) < 0.0000001) {
-    tm = (double)ros::Time::now().toSec(); 
+    tm = (double)ros::Time::now().toSec();
   }
   */
   tf::StampedTransform trans;
   try {
-    //ros::Time now = ros::Time::now();
+    // ros::Time now = ros::Time::now();
     ros::Time now(tm);
-    _listener.waitForTransform(frame1, frame2,
-      now, ros::Duration(1.0));
+    _listener.waitForTransform(frame1, frame2, now, ros::Duration(1.0));
 
-    _listener.lookupTransform(frame1, frame2,
-        now, trans);
+    _listener.lookupTransform(frame1, frame2, now, trans);
 
-  }
-  catch (tf::TransformException ex) {
+  } catch (tf::TransformException ex) {
     ROS_ERROR("%s", ex.what());
     ros::Duration(1.0).sleep();
   }
-  
+
   LogCurTime();
   _log << "timestamped is " << tm << endl;
 
@@ -221,14 +218,14 @@ void ArdroneTf::SetRefPose(double angle_offset, double img_tm) {
   _ref_trans.getBasis().getEulerYPR(yaw_plane, pitch, roll);
 
   // Two way of setting referance pose
-  //ref_qua.setEulerZYX(yaw_plane - angle_offset, 0.0, 0.0);
-  ref_qua.setEulerZYX(yaw_plane - angle_offset, pitch, roll); 
+  // ref_qua.setEulerZYX(yaw_plane - angle_offset, 0.0, 0.0);
+  ref_qua.setEulerZYX(yaw_plane - angle_offset, pitch, roll);
 
   tf::Transform input(ref_qua, _ref_trans.getOrigin());
   _ref_trans.setData(input);
   _br.SetRefPose(input, "odom", "ref_pose");
 
-  //Log Info
+  // Log Info
   LogCurTime();
   _log << "set number" << _cur_number << "'s referace pose" << endl;
   _ref_trans.getBasis().getEulerYPR(yaw_plane, pitch, roll);
@@ -236,32 +233,29 @@ void ArdroneTf::SetRefPose(double angle_offset, double img_tm) {
        << " Ty = " << _ref_trans.getOrigin().y()
        << " Tz = " << _ref_trans.getOrigin().z() << endl;
 
-  _log << "yaw = " << yaw_plane << " pitch = " 
-       << pitch << " roll = " << roll << endl;
+  _log << "yaw = " << yaw_plane << " pitch = " << pitch << " roll = " << roll
+       << endl;
 
   _log << "angle_offset = " << angle_offset << endl;
-
 }
 
-void ArdroneTf::GetDiff(double& error_x, double& error_y, 
-    double& error_turn) {
+void ArdroneTf::GetDiff(double &error_x, double &error_y, double &error_turn) {
 
   tf::StampedTransform ref_to_base;
   double yaw, yaw_ref, pitch, roll;
   double x_ref, y_ref;
   x_ref = _num_distance[_cur_number][*_path_itr]._x;
   y_ref = _num_distance[_cur_number][*_path_itr]._y;
-  if(x_ref < 0.00001&&y_ref < 0.0001){
-    if(_cur_number < *_path_itr) {
+  if (x_ref < 0.00001 && y_ref < 0.0001) {
+    if (_cur_number < *_path_itr) {
       for (int i = _cur_number; i < *_path_itr; i++) {
-        x_ref += _num_distance[i][i+1];
-        y_ref += _num_distance[i][i+1];
+        x_ref += _num_distance[i][i + 1];
+        y_ref += _num_distance[i][i + 1];
       }
-    } 
-    else {
-      for(int i = *_path_itr; i < _cur_number; i++) {
-        x_ref -= _num_distance[i][i+1];
-        y_ref -= _num_distance[i][i+1];
+    } else {
+      for (int i = *_path_itr; i < _cur_number; i++) {
+        x_ref -= _num_distance[i][i + 1];
+        y_ref -= _num_distance[i][i + 1];
       }
     }
   }
@@ -288,20 +282,18 @@ void ArdroneTf::GetDiff(double& error_x, double& error_y,
   }
   */
 
-  //Log Info
+  // Log Info
   LogCurTime();
-  _log << "error_x = " << error_x << "  error_y = " << error_y 
-      << "  error_turn = " << error_turn <<endl;
-
+  _log << "error_x = " << error_x << "  error_y = " << error_y
+       << "  error_turn = " << error_turn << endl;
 }
 
 void ArdroneTf::SetPathItr(int number) {
-  // Find the next path after number - 1 
+  // Find the next path after number - 1
   if (number == 1) {
     _path_itr = _travel_path.begin();
     _path_itr++;
-  }
-  else {
+  } else {
     vector<int>::const_iterator itr;
     int ref = 0;
     for (itr = _travel_path.begin(); itr != _travel_path.end(); ++itr) {
@@ -309,8 +301,7 @@ void ArdroneTf::SetPathItr(int number) {
         _path_itr = itr;
         _path_itr++;
         break;
-      }
-      else if (*itr == ref + 1) {
+      } else if (*itr == ref + 1) {
         ref++;
       }
     }
@@ -322,7 +313,7 @@ void ArdroneTf::LogCurTime() {
   struct tm *a;
   time(&timep);
   a = localtime(&timep);
-  _log << endl << a->tm_mday << " " << a->tm_hour << ":"
-       << a->tm_min << ":" << a->tm_sec << endl;
-
+  _log << endl
+       << a->tm_mday << " " << a->tm_hour << ":" << a->tm_min << ":"
+       << a->tm_sec << endl;
 }
