@@ -249,13 +249,13 @@ void ArdroneTf::GetDiff(double &error_x, double &error_y, double &error_turn) {
   if (x_ref < 0.00001 && y_ref < 0.0001) {
     if (_cur_number < *_path_itr) {
       for (int i = _cur_number; i < *_path_itr; i++) {
-        x_ref += _num_distance[i][i + 1];
-        y_ref += _num_distance[i][i + 1];
+        x_ref += _num_distance[i][i + 1]._x;
+        y_ref += _num_distance[i][i + 1]._y;
       }
     } else {
       for (int i = *_path_itr; i < _cur_number; i++) {
-        x_ref -= _num_distance[i][i + 1];
-        y_ref -= _num_distance[i][i + 1];
+        x_ref -= _num_distance[i][i + 1]._x;
+        y_ref -= _num_distance[i][i + 1]._y;
       }
     }
   }
