@@ -504,7 +504,7 @@ void *Control_loop(void *param) {
           turnleftr = 0;
 #endif
           if (abs(errorx) < 30 && abs(errory) < 30) {
-            turnleffr = 0;
+            turnleftr = 0;
             cout << img_recon.GetNumber() << endl;
             if (img_recon.GetNumber() == drone_tf._tar_number) {
               if ((clock() - pid_stable_time) / CLOCKS_PER_SEC * 1000 > 500) {
