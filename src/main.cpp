@@ -46,7 +46,7 @@ using namespace std;
 
 #define Test 0
 #define Test_tf_yaw 0
-#define Odo_Test 0
+#define Odo_Test 1
 
 static int mGrids = 5;
 static int nGrids = 6;
@@ -341,8 +341,8 @@ void *Control_loop(void *param) {
       case START:
         LogCurTime(log);
         if (cmdreader._is_reset) {
-          drone_tf._tar_number = 1;
-          drone_tf.SetPathItr(1);
+          drone_tf._tar_number = 3;
+          drone_tf.SetPathItr(3);
           cmdreader._is_reset = false;
         } else {
           drone_tf._tar_number++;
@@ -643,6 +643,8 @@ void *Control_loop(void *param) {
           CLIP3(-0.1, leftr, 0.1);
           CLIP3(-0.1, forwardb, 0.1);
           upd = 0;
+          //CLIP3(-0.15, turnleftr, 0.15);
+          turnleftr = 0;
           if (abs(errorx) < 30 && abs(errory) < 30) {
             cout << img_recon.GetNumber() << endl;
             if (img_recon.GetNumber() == drone_tf._tar_number) {
