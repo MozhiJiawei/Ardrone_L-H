@@ -336,8 +336,8 @@ void* Control_loop(void* param) {
       case START:
         LogCurTime(log);
         if (cmdreader._is_reset) {
-          drone_tf._tar_number = 1;
-          drone_tf.SetPathItr(1);
+          drone_tf._tar_number = 6;
+          drone_tf.SetPathItr(6);
           cmdreader._is_reset = false;
         }
         else {
@@ -405,7 +405,7 @@ void* Control_loop(void* param) {
           CLIP3(-0.1, leftr, 0.1);
           CLIP3(-0.1, forwardb, 0.1);
           CLIP3(-0.2, upd, 0.2);
-          CLIP3(-0.15, turnleftr, 0.15);
+          CLIP3(-0.15, turnleftr, 0.2);
 
           if (abs(errorx) < 30 && abs(errory) < 30 && abs(errorturn) < 0.10) {
             turnleftr = 0;
@@ -481,7 +481,7 @@ void* Control_loop(void* param) {
         CLIP3(-0.1, leftr, 0.1);
         CLIP3(-0.1, forwardb, 0.1);
         upd = 0;
-        CLIP3(-0.15, turnleftr, 0.15);
+        CLIP3(-0.15, turnleftr, 0.2);
 
         if (abs(errorx) < 0.2 && abs(errory) < 0.2) {
           log << "Flying! Getting close!" << endl;
@@ -659,12 +659,15 @@ void* Control_loop(void* param) {
           forwardb = pidVX.getOutput(targetvx - thread.navdata.vx, 0.5);
           leftr = pidVY.getOutput(targetvy - thread.navdata.vy, 0.5);
           leftr /= 15000;        forwardb /= 15000;
-          errorturn = - img_recon.GetTopPointDiff();
-          turnleftr = errorturn * 10;
+
+          //errorturn = - img_recon.GetTopPointDiff();
+          //turnleftr = errorturn * 10;
 
           CLIP3(-0.1, leftr, 0.1);
           CLIP3(-0.1, forwardb, 0.1);
           upd = 0;
+          //CLIP3(-0.15,turnleftr, 0.2);
+          turnleftr = 0;
           if (abs(errorx) < 30 && abs(errory) < 30) {
             cout << img_recon.GetNumber() << endl;
             if (img_recon.GetNumber() == drone_tf._tar_number) {
