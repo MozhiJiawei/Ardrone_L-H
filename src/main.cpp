@@ -45,8 +45,9 @@
 using namespace std;
 
 #define Test 0
-#define Test_tf_yaw 0
-#define Odo_Test 1
+#define Odo_Test 0
+#define Land_Turn 0
+#define TakeOff_PID_END 0
 
 static int mGrids = 5;
 static int nGrids = 6;
@@ -163,167 +164,14 @@ void *Control_loop(void *param) {
   double searching_time;
   double img_time;
   int searching_scale = 1;
+  double flying_scale = 300;
   clock_t pid_stable_time;
+  int pid_stable_count = 0;
   clock_t landing_time;
-
   bool land_centered = false;
-
-#if Test_tf_yaw
-  drone_tf.SetRefQuaternion();
-  while (ros::ok()) {
-    usleep(250000);
-    cout << "yaw_diff = " << drone_tf.YawDiff() << endl;
-    log << "yaw_diff = " << drone_tf.YawDiff() << endl;
-  }
-#endif
+  
 #if Test
-  tf::TransformListener listener;
-  double control_time;
-  double current;
-  drone.takeOff();
-  cout << "take off" << endl;
-  control_time = (double)ros::Time::now().toSec();
-  while ((double)ros::Time::now().toSec() < control_time + 6)
-    ;
-  drone.move(0.0, 0.1, 0.0, 0.0);
-  cout << "move 0.05" << endl;
-  while ((double)ros::Time::now().toSec() < control_time + 8) {
-    usleep(250000);
-    tf::StampedTransform odom_to_link;
-    try {
-      listener.lookupTransform("odom", "ardrone_base_link", ros::Time(0),
-                               odom_to_link);
-
-    } catch (tf::TransformException ex) {
-      ROS_ERROR("%s", ex.what());
-      ros::Duration(1.0).sleep();
-    }
-    time(&timep);
-    a = localtime(&timep);
-    log << endl
-        << a->tm_mday << " " << a->tm_hour << ":" << a->tm_min << ":"
-        << a->tm_sec << endl;
-
-    log << "form lister: " << (double)odom_to_link.stamp_.toSec() << endl;
-    log << "Tx = " << odom_to_link.getOrigin().x()
-        << " Ty = " << odom_to_link.getOrigin().y()
-        << " Tz = " << odom_to_link.getOrigin().z() << endl;
-
-    log << "Qx = " << odom_to_link.getRotation().x()
-        << " Qy = " << odom_to_link.getRotation().y()
-        << " Qz = " << odom_to_link.getRotation().z()
-        << " Qw = " << odom_to_link.getRotation().w() << endl;
-
-    log << "form Odo subsrcriber: " << thread._odometry.header.stamp.sec
-        << endl;
-
-    log << "Tx = " << thread._odometry.pose.pose.position.x
-        << " Ty = " << thread._odometry.pose.pose.position.y
-        << " Tz = " << thread._odometry.pose.pose.position.z << endl;
-
-    log << "Qx = " << thread._odometry.pose.pose.orientation.x
-        << " Qy = " << thread._odometry.pose.pose.orientation.y
-        << " Qz = " << thread._odometry.pose.pose.orientation.z
-        << " Qw = " << thread._odometry.pose.pose.orientation.w << endl;
-
-    log << "move 0.1   "
-        << "  vx: " << setw(8) << thread.navdata.vx << " vy:" << setw(8)
-        << thread.navdata.vy << endl; //<<" "<< thread.navdata.vz;
-  }
-  drone.move(0.0, 0.2, 0.0, 0.0);
-  cout << "move 0.2" << endl;
-  while ((double)ros::Time::now().toSec() < control_time + 10) {
-    usleep(250000);
-    tf::StampedTransform odom_to_link;
-    try {
-      listener.lookupTransform("odom", "ardrone_base_link", ros::Time(0),
-                               odom_to_link);
-
-    } catch (tf::TransformException ex) {
-      ROS_ERROR("%s", ex.what());
-      ros::Duration(1.0).sleep();
-    }
-    time(&timep);
-    a = localtime(&timep);
-    log << endl
-        << a->tm_mday << " " << a->tm_hour << ":" << a->tm_min << ":"
-        << a->tm_sec << endl;
-
-    log << "form lister: " << (double)odom_to_link.stamp_.toSec() << endl;
-    log << "Tx = " << odom_to_link.getOrigin().x()
-        << " Ty = " << odom_to_link.getOrigin().y()
-        << " Tz = " << odom_to_link.getOrigin().z() << endl;
-
-    log << "Qx = " << odom_to_link.getRotation().x()
-        << " Qy = " << odom_to_link.getRotation().y()
-        << " Qz = " << odom_to_link.getRotation().z()
-        << " Qw = " << odom_to_link.getRotation().w() << endl;
-
-    log << "form Odo subsrcriber: " << thread._odometry.header.stamp.sec
-        << endl;
-
-    log << "Tx = " << thread._odometry.pose.pose.position.x
-        << " Ty = " << thread._odometry.pose.pose.position.y
-        << " Tz = " << thread._odometry.pose.pose.position.z << endl;
-
-    log << "Qx = " << thread._odometry.pose.pose.orientation.x
-        << " Qy = " << thread._odometry.pose.pose.orientation.y
-        << " Qz = " << thread._odometry.pose.pose.orientation.z
-        << " Qw = " << thread._odometry.pose.pose.orientation.w << endl;
-
-    log << "move 0.2  "
-        << "  vx: " << setw(8) << thread.navdata.vx << " vy:" << setw(8)
-        << thread.navdata.vy << endl; //<<" "<< thread.navdata.vz;
-  }
-  drone.move(0.0, 0.1, 0.0, 0.0);
-  cout << "move 0" << endl;
-  while ((double)ros::Time::now().toSec() < control_time + 12) {
-    usleep(250000);
-    tf::StampedTransform odom_to_link;
-    try {
-      listener.lookupTransform("odom", "ardrone_base_link", ros::Time(0),
-                               odom_to_link);
-
-    } catch (tf::TransformException ex) {
-      ROS_ERROR("%s", ex.what());
-      ros::Duration(1.0).sleep();
-    }
-    time(&timep);
-    a = localtime(&timep);
-    log << endl
-        << a->tm_mday << " " << a->tm_hour << ":" << a->tm_min << ":"
-        << a->tm_sec << endl;
-
-    log << "form lister: " << (double)odom_to_link.stamp_.toSec() << endl;
-    log << "Tx = " << odom_to_link.getOrigin().x()
-        << " Ty = " << odom_to_link.getOrigin().y()
-        << " Tz = " << odom_to_link.getOrigin().z() << endl;
-
-    log << "Qx = " << odom_to_link.getRotation().x()
-        << " Qy = " << odom_to_link.getRotation().y()
-        << " Qz = " << odom_to_link.getRotation().z()
-        << " Qw = " << odom_to_link.getRotation().w() << endl;
-
-    log << "form Odo subsrcriber: " << thread._odometry.header.stamp.sec
-        << endl;
-
-    log << "Tx = " << thread._odometry.pose.pose.position.x
-        << " Ty = " << thread._odometry.pose.pose.position.y
-        << " Tz = " << thread._odometry.pose.pose.position.z << endl;
-
-    log << "Qx = " << thread._odometry.pose.pose.orientation.x
-        << " Qy = " << thread._odometry.pose.pose.orientation.y
-        << " Qz = " << thread._odometry.pose.pose.orientation.z
-        << " Qw = " << thread._odometry.pose.pose.orientation.w << endl;
-
-    log << "move 0.1   "
-        << "  vx: " << setw(8) << thread.navdata.vx << " vy:" << setw(8)
-        << thread.navdata.vy << endl; //<<" "<< thread.navdata.vz;
-  }
-  drone.land();
-  ros::spin();
 #else
-
   cvNamedWindow("a", 1);
   while (ros::ok()) {
     usleep(1000);
@@ -341,8 +189,8 @@ void *Control_loop(void *param) {
       case START:
         LogCurTime(log);
         if (cmdreader._is_reset) {
-          drone_tf._tar_number = 3;
-          drone_tf.SetPathItr(3);
+          drone_tf._tar_number = 1;
+          drone_tf.SetPathItr(1);
           cmdreader._is_reset = false;
         } else {
           drone_tf._tar_number++;
@@ -412,8 +260,14 @@ void *Control_loop(void *param) {
             turnleftr = 0;
             if (upd == 0) {
               cout << img_recon.GetNumber() << endl;
+              pid_stable_count++;
+#if TakeOff_PID_END
+              if (pid_stable_count >= 4 && img_recon.GetNumber() != -1) {
+
+#else
               if ((clock() - pid_stable_time) / CLOCKS_PER_SEC * 1000 > 500 &&
                   img_recon.GetNumber() != -1) {
+#endif
 
                 log << "TAKEOFF Complete! Current Number is "
                     << img_recon.GetNumber() << endl
@@ -432,6 +286,7 @@ void *Control_loop(void *param) {
             }
           } else {
             pid_stable_time = clock();
+            pid_stable_count = 0;
             log << "TAKEOFF! PID Control to center" << endl;
             log << "e_x = " << errorx << "  e_y = " << errory
                 << "  angle diff = " << errorturn << endl;
@@ -458,8 +313,8 @@ void *Control_loop(void *param) {
         lasterrory = errory;
         drone_tf.GetDiff(errorx, errory, errorturn);
 
-        targetvx = -vk * (2 * errorx - lasterrorx) * 600;
-        targetvy = -vk * (2 * errory - lasterrory) * 600;
+        targetvx = -vk * (2 * errorx - lasterrorx) * flying_scale;
+        targetvy = -vk * (2 * errory - lasterrory) * flying_scale;
         if (errorx > 80 || errorx < -80) {
           targetvx += -vk * errorx + 80 * vk;
         }
@@ -643,9 +498,13 @@ void *Control_loop(void *param) {
           CLIP3(-0.1, leftr, 0.1);
           CLIP3(-0.1, forwardb, 0.1);
           upd = 0;
-          //CLIP3(-0.15, turnleftr, 0.15);
+#if Land_Turn
+          CLIP3(-0.15, turnleftr, 0.15);
+#else
           turnleftr = 0;
+#endif
           if (abs(errorx) < 30 && abs(errory) < 30) {
+            turnleffr = 0;
             cout << img_recon.GetNumber() << endl;
             if (img_recon.GetNumber() == drone_tf._tar_number) {
               if ((clock() - pid_stable_time) / CLOCKS_PER_SEC * 1000 > 500) {
