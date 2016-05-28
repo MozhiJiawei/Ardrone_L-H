@@ -13,9 +13,9 @@ ArdroneTf::ArdroneTf(const char *file_name) : _file_path(file_name) {
   // 0:
   vector<_distance> dis_zero;
   dis_zero.push_back(_distance(0, 0));        // 0->0
-  dis_zero.push_back(_distance(1.9, -1.8));  // 0->1
-  dis_zero.push_back(_distance(0, 0));   // 0->2 2.2 1.45
-  dis_zero.push_back(_distance(0, 0)); // 0->3 2.73 -0.25
+  dis_zero.push_back(_distance(1.9, -1.75));  // 0->1
+  dis_zero.push_back(_distance(2.1, 1.4));   // 0->2 2.2 1.45
+  dis_zero.push_back(_distance(2.7, -0.2)); // 0->3 2.73 -0.25
   dis_zero.push_back(_distance(0, 0));        // 0->4
   dis_zero.push_back(_distance(0, 0));        // 0->5
   dis_zero.push_back(_distance(0, 0));        // 0->6
@@ -30,7 +30,7 @@ ArdroneTf::ArdroneTf(const char *file_name) : _file_path(file_name) {
   dis_one.push_back(_distance(0, 0));      // 1->1
   dis_one.push_back(_distance(0.1, 3.25)); // 1->2 0.05  3.3
   dis_one.push_back(_distance(0.83, 1.65));      // 1->3
-  dis_one.push_back(_distance(0, 0));  // 1->4 2.8 0.2
+  dis_one.push_back(_distance(2.75, 0.2));  // 1->4 2.8 0.2
   dis_one.push_back(_distance(0, 0));      // 1->5
   dis_one.push_back(_distance(0, 0));      // 1->6
   dis_one.push_back(_distance(0, 0));      // 1->7
@@ -55,10 +55,10 @@ ArdroneTf::ArdroneTf(const char *file_name) : _file_path(file_name) {
   // 3:
   vector<_distance> dis_three;
   dis_three.push_back(_distance(0, 0));         // 3->0
-  dis_three.push_back(_distance(0, 0)); // 3->1 -0.85  -1.65
+  dis_three.push_back(_distance(-0.8, -1.65)); // 3->1 -0.85  -1.65
   dis_three.push_back(_distance(-0.6, 1.62));    // 3->2
   dis_three.push_back(_distance(0, 0));         // 3->3
-  dis_three.push_back(_distance(1.86, -1.5));    // 3->4 1.9  -1.6
+  dis_three.push_back(_distance(1.86, -1.45));    // 3->4 1.9  -1.6
   dis_three.push_back(_distance(0, 0));         // 3->5
   dis_three.push_back(_distance(0, 0));         // 3->6
   dis_three.push_back(_distance(0, 0));         // 3->7
@@ -98,14 +98,14 @@ ArdroneTf::ArdroneTf(const char *file_name) : _file_path(file_name) {
   vector<_distance> dis_six;
   dis_six.push_back(_distance(0, 0));       // 6->0
   dis_six.push_back(_distance(0, 0));       // 6->1
-  dis_six.push_back(_distance(0, 0)); // 6->2 -2.62, 0.3
+  dis_six.push_back(_distance(-2.6, 0.3)); // 6->2 -2.62, 0.3
   dis_six.push_back(_distance(0, 0));       // 6->3
   dis_six.push_back(_distance(0, 0));       // 6->4
   dis_six.push_back(_distance(2.8, -0.55)); // 6->5
   dis_six.push_back(_distance(0, 0));       // 6->6
-  dis_six.push_back(_distance(4.9, 0.1));   // 6->7 4.8 0.1
+  dis_six.push_back(_distance(4.4, 0.1));   // 6->7 4.8 0.1
   dis_six.push_back(_distance(0, 0));       // 6->8
-  dis_six.push_back(_distance(0, 0));       // 6->9
+  dis_six.push_back(_distance(0.75, -1.6));       // 6->9
   _num_distance.push_back(dis_six);
 
   // 7:
@@ -115,7 +115,7 @@ ArdroneTf::ArdroneTf(const char *file_name) : _file_path(file_name) {
   dis_seven.push_back(_distance(0, 0));       // 7->2
   dis_seven.push_back(_distance(0, 0));       // 7->3
   dis_seven.push_back(_distance(0, 0));       // 7->4
-  dis_seven.push_back(_distance(0, 0));       // 7->5
+  dis_seven.push_back(_distance(-2.05, -0.6));       // 7->5
   dis_seven.push_back(_distance(0, 0));       // 7->6
   dis_seven.push_back(_distance(0, 0));       // 7->7
   dis_seven.push_back(_distance(-0.6, -2.7)); // 7->8
@@ -142,9 +142,9 @@ ArdroneTf::ArdroneTf(const char *file_name) : _file_path(file_name) {
   dis_nine.push_back(_distance(0, 0));      // 9->1
   dis_nine.push_back(_distance(0, 0));      // 9->2
   dis_nine.push_back(_distance(0, 0));      // 9->3
-  dis_nine.push_back(_distance(0, 0));      // 9->4
+  dis_nine.push_back(_distance(-0.9, -1.25));      // 9->4
   dis_nine.push_back(_distance(2.05, 1)); // 9->5
-  dis_nine.push_back(_distance(0, 0));      // 9->6
+  dis_nine.push_back(_distance(-0.75, 1.6));      // 9->6
   dis_nine.push_back(_distance(0, 0));      // 9->7
   dis_nine.push_back(_distance(0, 0));      // 9->8
   dis_nine.push_back(_distance(0, 0));      // 9->9

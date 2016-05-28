@@ -190,8 +190,8 @@ void *Control_loop(void *param) {
       case START:
         LogCurTime(log);
         if (cmdreader._is_reset) {
-          drone_tf._tar_number = 8;
-          drone_tf.SetPathItr(8);
+          drone_tf._tar_number = 1;
+          drone_tf.SetPathItr(1);
           cmdreader._is_reset = false;
         } else {
           drone_tf._tar_number++;
