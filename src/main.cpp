@@ -497,45 +497,50 @@ void *Control_loop(void *param) {
           leftr = pidVY.getOutput(targetvy - thread.navdata.vy, 0.5);
           leftr /= 15000;
           forwardb /= 15000;
-          errorturn = -img_recon.GetTopPointDiff();
-          turnleftr = errorturn * 10;
 
           CLIP3(-0.1, leftr, 0.1);
           CLIP3(-0.1, forwardb, 0.1);
           upd = 0;
-#if Land_Turn
-          CLIP3(-0.15, turnleftr, 0.15);
-#else
           turnleftr = 0;
-#endif
           if (abs(errorx) < 30 && abs(errory) < 30) {
-            turnleftr = 0;
-            cout << img_recon.GetNumber() << endl;
-            if (img_recon.GetNumber() == drone_tf._tar_number) {
-              if ((clock() - pid_stable_time) / CLOCKS_PER_SEC * 1000 > 500) {
-                turnleftr = 0;
-                drone.hover();
-                usleep(500000);
-                drone.land();
-                log << "LANDING! Already centered" << endl;
-                landing_time = (double)ros::Time::now().toSec();
-                while ((double)ros::Time::now().toSec() < landing_time + 6)
-                  ;
-                next_mode = START;
-              }
-            } else if (img_recon.GetNumber() == *(drone_tf._path_itr)) {
-              next_mode = TAKEOFF;
-              drone_tf._path_itr++;
-              log << "Flying to Path Number " << *(drone_tf._path_itr)
+#if Land_Turn
+            errorturn = -img_recon.GetTopPointDiff();
+#else
+            errorturn = 0;
+#endif
+            turnleftr = errorturn * 10;
+            CLIP3(-0.15, turnleftr, 0.15);
+            if( abs(errorturn) < 0.1) {
+              turnleftr = 0;
+              cout << img_recon.GetNumber() << endl;
+              if (img_recon.GetNumber() == drone_tf._tar_number) {
+                if ((clock() - pid_stable_time) / CLOCKS_PER_SEC * 1000 > 500) {
+                  turnleftr = 0;
+                  drone.hover();
+                  usleep(500000);
+                  drone.land();
+                  log << "LANDING! Already centered" << endl;
+                  landing_time = (double)ros::Time::now().toSec();
+                  while ((double)ros::Time::now().toSec() < landing_time + 6)
+                    ;
+                  next_mode = START;
+                }
+              } else if (img_recon.GetNumber() == *(drone_tf._path_itr)) {
+                next_mode = TAKEOFF;
+                drone_tf._path_itr++;
+                log << "Flying to Path Number " << *(drone_tf._path_itr)
                   << "  Complete!!" << endl;
 
-            } else if (img_recon.GetNumber() != -1) {
-              next_mode = TAKEOFF;
-              log << "target number is " << drone_tf._tar_number << endl;
-              log << "current number is " << img_recon.GetNumber() << endl;
-              log << "flying to wrong number! TAKEOFF again!" << endl;
+              } else if (img_recon.GetNumber() != -1) {
+                next_mode = TAKEOFF;
+                log << "target number is " << drone_tf._tar_number << endl;
+                log << "current number is " << img_recon.GetNumber() << endl;
+                log << "flying to wrong number! TAKEOFF again!" << endl;
+              } else {
+                log << "cannot regnoize image" << endl;
+              }
             } else {
-              log << "cannot regnoize image" << endl;
+              pid_stable_time = clock();
             }
           } else {
             pid_stable_time = clock();
@@ -545,20 +550,20 @@ void *Control_loop(void *param) {
         break;
       default:
         break;
+        }
       }
-    }
-    lostframe++;
-    if (lostframe > 3000) {
-      drone.land(); // if the video is not fluent
-      continue;
-    }
-    if (lostframe > 100) {
-      cout << "stuck." << endl;
-      drone.hover(); // if the video is not fluent
-      continue;
-    }
-    if (cur_mode == cmdreader.GetMode() && cur_mode != MANUL) {
-      cmdreader.RunNextMode(next_mode, leftr, forwardb, upd, turnleftr);
+      lostframe++;
+      if (lostframe > 3000) {
+        drone.land(); // if the video is not fluent
+        continue;
+      }
+      if (lostframe > 100) {
+        cout << "stuck." << endl;
+        drone.hover(); // if the video is not fluent
+        continue;
+      }
+      if (cur_mode == cmdreader.GetMode() && cur_mode != MANUL) {
+        cmdreader.RunNextMode(next_mode, leftr, forwardb, upd, turnleftr);
     }
     if (cmdreader.GetMode() == MANUL) {
       if (static_cast<double>(clock() - cmdreader.GetManualTime()) /
