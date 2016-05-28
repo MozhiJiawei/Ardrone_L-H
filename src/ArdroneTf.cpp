@@ -246,7 +246,7 @@ void ArdroneTf::GetDiff(double &error_x, double &error_y, double &error_turn) {
   double x_ref, y_ref;
   x_ref = _num_distance[_cur_number][*_path_itr]._x;
   y_ref = _num_distance[_cur_number][*_path_itr]._y;
-  if (x_ref < 0.00001 && y_ref < 0.0001) {
+  if (abs(x_ref) < 0.00001 && abs(y_ref) < 0.0001) {
     if (_cur_number < *_path_itr) {
       for (int i = _cur_number; i < *_path_itr; i++) {
         x_ref += _num_distance[i][i + 1]._x;
@@ -258,8 +258,6 @@ void ArdroneTf::GetDiff(double &error_x, double &error_y, double &error_turn) {
         y_ref -= _num_distance[i][i + 1]._y;
       }
     }
-    _num_distance[_cur_number][*_path_itr]._x = x_ref;
-    _num_distance[_cur_number][*_path_itr]._y = y_ref;
   }
   ref_to_base = get_transform("ref_pose", "ardrone_base_link");
   error_x = -ref_to_base.getOrigin().x() - x_ref;
@@ -286,6 +284,7 @@ void ArdroneTf::GetDiff(double &error_x, double &error_y, double &error_turn) {
 
   // Log Info
   LogCurTime();
+  _log << "ref_x = " << x_ref << "ref_y = " << y_ref << endl;
   _log << "error_x = " << error_x << "  error_y = " << error_y
        << "  error_turn = " << error_turn << endl;
 }

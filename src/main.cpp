@@ -47,7 +47,7 @@ using namespace std;
 #define Test 0
 #define Odo_Test 0
 #define Land_Turn 0
-#define TakeOff_PID_END 0
+#define TakeOff_PID_END 1
 
 static int mGrids = 5;
 static int nGrids = 6;
@@ -169,6 +169,7 @@ void *Control_loop(void *param) {
   int pid_stable_count = 0;
   clock_t landing_time;
   bool land_centered = false;
+  bool is_takeoff = false;
   
 #if Test
 #else
@@ -189,8 +190,8 @@ void *Control_loop(void *param) {
       case START:
         LogCurTime(log);
         if (cmdreader._is_reset) {
-          drone_tf._tar_number = 1;
-          drone_tf.SetPathItr(1);
+          drone_tf._tar_number = 8;
+          drone_tf.SetPathItr(8);
           cmdreader._is_reset = false;
         } else {
           drone_tf._tar_number++;
@@ -238,10 +239,10 @@ void *Control_loop(void *param) {
           leftr = pidVY.getOutput(targetvy - thread.navdata.vy, 0.5);
           leftr /= 15000;
           forwardb /= 15000;
-          if (thread.navdata.altd < 1400) {
-            upd = 0.002 * (1400 - thread.navdata.altd);
-          } else if (thread.navdata.altd > 1450) {
-            upd = 0.002 * (1450 - thread.navdata.altd);
+          if (thread.navdata.altd < 1500) {
+            upd = 0.002 * (1500 - thread.navdata.altd);
+          } else if (thread.navdata.altd > 1550) {
+            upd = 0.002 * (1550 - thread.navdata.altd);
           } else {
             upd = 0;
           }
@@ -295,14 +296,13 @@ void *Control_loop(void *param) {
                 << "  z_up = " << upd << "  turn = " << turnleftr << endl;
           }
         } else {
-          if (thread.navdata.altd < 1400) {
-            upd = 0.002 * (1400 - thread.navdata.altd);
-          } else if (thread.navdata.altd > 1450) {
-            upd = 0.002 * (1450 - thread.navdata.altd);
-          } else {
-            upd = 0;
-          }
-          forwardb = 0.1;
+          upd = 0;
+          turnleftr = 0;
+          leftr = 0;
+          next_mode = SEARCHING;
+          searching_scale = 1;
+          is_takeoff = true;
+          searching_time = (double)ros::Time::now().toSec() - 4;
           CLIP3(-0.2, upd, 0.2);
           log << "TAKEOFF! Cannot find conter, keep rising" << endl;
         }
@@ -383,7 +383,12 @@ void *Control_loop(void *param) {
         LogCurTime(log);
         if (img_recon.ContourExist()) {
           log << "Contour Searched! ready to land" << endl;
-          next_mode = LAND;
+          if(is_takeoff) {
+            next_mode = TAKEOFF;
+            is_takeoff = false;
+          } else {
+            next_mode = LAND;
+          }
         } else {
           log << "Searing contour!" << endl;
           if ((double)ros::Time::now().toSec() <
@@ -548,6 +553,7 @@ void *Control_loop(void *param) {
       continue;
     }
     if (lostframe > 100) {
+      cout << "stuck." << endl;
       drone.hover(); // if the video is not fluent
       continue;
     }
