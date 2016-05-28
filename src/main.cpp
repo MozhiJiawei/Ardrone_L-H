@@ -46,7 +46,7 @@ using namespace std;
 
 #define Test 0
 #define Odo_Test 0
-#define Land_Turn 0
+#define Land_Turn 1
 #define TakeOff_PID_END 1
 
 static int mGrids = 5;
@@ -234,7 +234,6 @@ void *Control_loop(void *param) {
           }
           CLIP3(-1500.0, targetvx, 1500.0);
           CLIP3(-1500.0, targetvy, 1500.0);
-
           forwardb = pidVX.getOutput(targetvx - thread.navdata.vx, 0.5);
           leftr = pidVY.getOutput(targetvy - thread.navdata.vy, 0.5);
           leftr /= 15000;

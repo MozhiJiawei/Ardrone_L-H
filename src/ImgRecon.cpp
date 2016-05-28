@@ -385,5 +385,5 @@ bool ImgRecon::ContourExist()
 //>0,left higher;<0,right higher
 float ImgRecon::GetTopPointDiff()
 {
-  return asin((corners1[1].y-corners1[0].y)/sqrt((corners1[0].x-corners1[1].x)*(corners1[0].x-corners1[1].x)+(corners1[0].x-corners1[1].x)*(corners1[1].y-corners1[0].y)));
+  return asin((corners1[1].y-corners1[0].y)/sqrt((corners1[0].x-corners1[1].x)*(corners1[0].x-corners1[1].x)+(corners1[1].y-corners1[0].y)*(corners1[1].y-corners1[0].y)));
 }
