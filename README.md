@@ -4,4 +4,4 @@ To build your environment.
 Please see Ardrone_2
 
 Note:
-Ardrone_TF may not work properly.
+ArdroneTF may not work properly.
