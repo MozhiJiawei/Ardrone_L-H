@@ -3,5 +3,6 @@
 To build your environment.
 Please see Ardrone_2
 
-Note:
+Warning:
 ArdroneTF may not work properly.
+Use NavIntegration in Ardrone_2 instead.
